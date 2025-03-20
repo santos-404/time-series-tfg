@@ -1,0 +1,68 @@
+env.py
+.env
+
+data/*
+!data/README.md
+
+# Byte-compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+
+# Django-related files
+*.log
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+static/
+
+# Secret settings (e.g., environment variables)
+.env
+*.pem
+
+# IDEs & Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Compiled files
+*.so
+
+# Celery & Task Queues
+celerybeat-schedule
+celerybeat.pid
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+
+# pytest & testing
+.pytest_cache/
+.tox/
+nosetests.xml
+coverage.xml
+*.cover
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# MyPy & Type Checking
+.mypy_cache/
+.dmypy.json
+
+# Node.js 
+node_modules/
+package-lock.json
+yarn.lock
+
+# Gunicorn (if used)
+gunicorn.log
+gunicorn.error.log
+
