@@ -7,7 +7,6 @@ import html
 
 from env import TOKEN_ESIOS
 
-
 BASE_ENDPOINT = 'https://api.esios.ree.es/indicators'
 HEADERS = {'Accept': 'application/json; application/vnd.esios-api-v2+json',
            'Content-Type': 'application/json',
@@ -49,7 +48,7 @@ def get_indicators() -> pd.DataFrame:
                                                         # I've just noticed that html.unescape() also expect only strings (solved too)
                                                         if isinstance(df__['description'], str) else df__['description'],
                                                   axis=1)
-                   )
+                   ))
            
 
 
