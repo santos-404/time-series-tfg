@@ -21,6 +21,7 @@ HEADERS = {'Accept': 'application/json; application/vnd.esios-api-v2+json',
 DATA_DIR = os.path.join("data")
 
 # The format of this dicc is: path -> [ids]
+# Price vars are the variables to predict
 DATA_TO_DOWNLOAD = {
         "energy_generation/hydraulic" : [1, 36, 71],
         "energy_generation/nuclear" : [4, 39, 74],
@@ -31,7 +32,6 @@ DATA_TO_DOWNLOAD = {
         "price/daily_spot_market": [600],
         "price/average_demand_price": [573]
         }
-
 
 def get_indicators() -> pd.DataFrame:
     """Get all available indicators from the API."""
@@ -53,25 +53,39 @@ def get_indicators() -> pd.DataFrame:
 
 
 
-def get_data_by_id_year(indicator_id: int, year: int) -> pd.DataFrame:
-    """Get data for a specific indicator by ID for a given year."""
-
-    # If the year selected is the current one it must go til today; not 31 Dec.
-    # I'm currently saving 5 full years and the current one.
-    start_date = datetime(year, 1, 1).strftime('%Y-%m-%d')
-    if year == datetime.today().year:
-        end_date = datetime.today().strftime('%Y-%m-%d')
+def get_data_by_id_month(indicator_id: int, year: int, month: int) -> pd.DataFrame:
+    """Get data for a specific indicator by ID for a given month."""
+    start_date = datetime(year, month, 1)
+    
+    # If it's the current year and month, use today as the end date
+    if year == datetime.today().year and month == datetime.today().month:
+        end_date = datetime.today()
     else:
-        end_date = datetime(year, 12, 31).strftime('%Y-%m-%d')
+        # Otherwise, use the last day of the month. We use the -1day because I don't know the number
+        # of the days of each month.
+        if month == 12:
+            end_date = datetime(year + 1, 1, 1) - timedelta(days=1)
+        else:
+            end_date = datetime(year, month + 1, 1) - timedelta(days=1)
 
-    endpoint = (f"{BASE_ENDPOINT}/{indicator_id}?start_date={start_date}T00:00&end_date={end_date}T23:59&time_trunc=day")
+    start_date_str = start_date.strftime('%Y-%m-%d')
+    end_date_str = end_date.strftime('%Y-%m-%d')
+
+    endpoint = (f"{BASE_ENDPOINT}/{indicator_id}?start_date={start_date_str}T00:00&end_date={end_date_str}T23:59&time_trunc=five_minutes")
     response = requests.get(endpoint, headers=HEADERS).json()
-    return pd.json_normalize(data=response['indicator'], errors='ignore')
 
-def save_data(data: pd.DataFrame, file_path: str) -> None:
-    """Save DataFrame to CSV file."""
+    return pd.json_normalize(data=response['indicator'], record_path='values', errors='ignore')
+
+
+def save_or_append_data(data: pd.DataFrame, file_path: str) -> None:
+    """Save or append DataFrame to CSV file."""
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
-    data.to_csv(file_path, index=False)
+    
+    if not os.path.exists(file_path):
+        data.to_csv(file_path, index=False)
+    else:
+        data.to_csv(file_path, mode='a', header=False, index=False)
+
 
 def main() -> None:
     """Main function to orchestrate data downloading."""
@@ -80,7 +94,7 @@ def main() -> None:
     if input("Do you want to download and save the indicators? [y/N] ").lower() == 'y':
         indicators = get_indicators()
         file_path = os.path.join(DATA_DIR, "indicators.csv")
-        save_data(indicators, file_path)
+        save_or_append_data(indicators, file_path)
  
     five_years_ago = datetime.today() - timedelta(days=5*365)
     start_year = five_years_ago.year
@@ -92,13 +106,27 @@ def main() -> None:
         for indicator_id in indicator_ids:
             if input(f"Do you want to download indicator {indicator_id} for {category}? [y/N] ").lower() == 'y':
                 for year in range(start_year, current_year + 1):
-                    print(f"Downloading indicator {indicator_id} for {category} for year {year}...")
-
-                    data = get_data_by_id_year(indicator_id, year)
-                    file_path_name = os.path.join(category_dir_name, f"{indicator_id}_{year}.csv")
-
-                    save_data(data, file_path_name)
-            
+                    yearly_data = []
+                    for month in range(1, 13):
+                        # Skip future months for the current year
+                        if year == current_year and month > datetime.today().month:
+                            break
+                        
+                        print(f"Downloading indicator {indicator_id} for {category} for {year}-{month:02d}...")
+                        try:
+                            monthly_data = get_data_by_id_month(indicator_id, year, month)
+                            
+                            # If data is not empty, add to yearly data
+                            if not monthly_data.empty:
+                                yearly_data.append(monthly_data)
+                        except Exception as e:
+                            print(f"Error downloading data for {year}-{month:02d}: {e}")
+                    
+                    # Combine monthly data for the year
+                    if yearly_data:
+                        combined_yearly_data = pd.concat(yearly_data, ignore_index=True)
+                        file_path_name = os.path.join(category_dir_name, f"{indicator_id}_{year}.csv")
+                        save_or_append_data(combined_yearly_data, file_path_name)
 
 if __name__ == "__main__":
     main()
