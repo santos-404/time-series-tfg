@@ -1,7 +1,10 @@
 # Data
 
 ## Why is there no data?
-I didn't upload every CSV to GitHub because I think it's unnecessary. The data is massive, and it can be downloaded locally using the attached scripts.
+I didn't upload every CSV to GitHub because I think it's unnecessary. The data is massive, and it can be downloaded locally using the attached scripts. I didn't upload every CSV to GitHub because I think it's unnecessary. The data is massive, and it can be downloaded locally using the attached scripts. 
+
+Please note that an ESIOS token is required; if you wish to use the data, you should contact ESIOS to request one.
+
 
 ## Which data will be used?
 These are all the variables I'll use. This might be modified across versions.
