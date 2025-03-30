@@ -61,8 +61,8 @@ def get_data_by_id_month(indicator_id: int, year: int, month: int) -> pd.DataFra
     if year == datetime.today().year and month == datetime.today().month:
         end_date = datetime.today()
     else:
-        # Otherwise, use the last day of the month. We use the -1day because I don't know the number
-        # of the days of each month.
+        # Otherwise, use the last day of the month. We use the -1day cuz is the easiest way to
+        # know the last day of each mont dynamically
         if month == 12:
             end_date = datetime(year + 1, 1, 1) - timedelta(days=1)
         else:
@@ -80,11 +80,7 @@ def get_data_by_id_month(indicator_id: int, year: int, month: int) -> pd.DataFra
 def save_or_append_data(data: pd.DataFrame, file_path: str) -> None:
     """Save or append DataFrame to CSV file."""
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
-    
-    if not os.path.exists(file_path):
-        data.to_csv(file_path, index=False)
-    else:
-        data.to_csv(file_path, mode='a', header=False, index=False)
+    data.to_csv(file_path, index=False)
 
 
 def main() -> None:
