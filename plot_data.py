@@ -38,7 +38,7 @@ def load_and_concat(folder_path):
 
 def plot():
     DIRECTORIES = {
-        'Peninsula Forecast': 'data/energy_demand/peninsula_forecast',
+        'Peninsula Energy Demand Forecast': 'data/energy_demand/peninsula_forecast',
         'Scheduled Demand': 'data/energy_demand/scheduled_demand',
         'Hydraulic Generation': 'data/energy_generation/hydraulic',
         'Nuclear Generation': 'data/energy_generation/nuclear',
