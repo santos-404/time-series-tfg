@@ -2,10 +2,14 @@ import pandas as pd
 import requests
 import os
 from datetime import datetime, timedelta
+from dotenv import load_dotenv
 
 import html
 
-from env import TOKEN_ESIOS
+# from env import TOKEN_ESIOS
+
+load_dotenv()
+TOKEN_ESIOS = os.getenv("TOKEN_ESIOS")
 
 BASE_ENDPOINT = 'https://api.esios.ree.es/indicators'
 HEADERS = {'Accept': 'application/json; application/vnd.esios-api-v2+json',
@@ -125,4 +129,5 @@ def main() -> None:
                         save_or_append_data(combined_yearly_data, file_path_name)
 
 if __name__ == "__main__":
-    main()
+    print(TOKEN_ESIOS)
+    # main()

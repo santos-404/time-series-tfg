@@ -16,7 +16,7 @@ To access and work with the data, you'll need to follow these steps:
 ### Prerequisites
 
 1. You'll need an ESIOS token as described in `data/README.md`
-2. Add your token to the `env.py` file (use `env.example.py` as a template)
+2. Add your token to the `.env` file (use `.env.example` as a template)
 3. Install dependencies:
    ```bash
    # Create and activate a virtual environment (recommended)
@@ -42,5 +42,5 @@ Once set up, you can:
 
 If you only need to download the data without visualization capabilities, you can install just the core dependencies:
 ```bash
-pip install pandas requests
+pip install pandas requests dotenv
 ```
