@@ -4,6 +4,8 @@ import os
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
+import sys
+
 import html
 
 # from env import TOKEN_ESIOS
@@ -90,8 +92,10 @@ def save_or_append_data(data: pd.DataFrame, file_path: str) -> None:
 def main() -> None:
     """Main function to orchestrate data downloading."""
     os.makedirs(DATA_DIR, exist_ok=True)
+
+    autoyes = "-y" in sys.argv
     
-    if input("Do you want to download and save the indicators? [y/N] ").lower() == 'y':
+    if autoyes or input("Do you want to download and save the indicators? [y/N] ").lower() == 'y':
         indicators = get_indicators()
         file_path = os.path.join(DATA_DIR, "indicators.csv")
         save_or_append_data(indicators, file_path)
@@ -104,7 +108,7 @@ def main() -> None:
         category_dir_name = os.path.join(DATA_DIR, category)
         os.makedirs(category_dir_name, exist_ok=True)
         for indicator_id in indicator_ids:
-            if input(f"Do you want to download indicator {indicator_id} for {category}? [y/N] ").lower() == 'y':
+            if autoyes or input(f"Do you want to download indicator {indicator_id} for {category}? [y/N] ").lower() == 'y':
                 for year in range(start_year, current_year + 1):
                     yearly_data = []
                     for month in range(1, 13):
