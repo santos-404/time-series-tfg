@@ -133,5 +133,4 @@ def main() -> None:
                         save_or_append_data(combined_yearly_data, file_path_name)
 
 if __name__ == "__main__":
-    print(TOKEN_ESIOS)
-    # main()
+    main()
