@@ -3,6 +3,7 @@ import pandas as pd
 from collections import defaultdict
 
 DATA_DIR = "data"  
+SELECTED_GEO = {"Península", "España", "Portugal", "Baleares", "Canarias", "Ceuta", "Melilla"}
 
 def get_data_id(path):
     parts = path.replace("\\", "/").split("/")
@@ -27,10 +28,22 @@ def main():
 
             try:
                 df = pd.read_csv(path)
-
-                df = df[['datetime_utc', 'value']]
                 df['datetime_utc'] = pd.to_datetime(df['datetime_utc'], utc=True)
-                data[data_id].append(df)
+
+                df = df[df['geo_name'].isin(SELECTED_GEO)]
+                unique_geos = df['geo_name'].nunique()
+                if unique_geos > 1:
+                    pivot_df = df.pivot_table(index="datetime_utc",
+                                              columns="geo_name",
+                                              values="value",
+                                              aggfunc="first")
+                    pivot_df = pivot_df.rename(columns=lambda g: f"{data_id}_{g}")
+                    pivot_df = pivot_df.reset_index()
+                    data[data_id].append(pivot_df)
+                else:
+                    df = df[['datetime_utc', 'value']]
+                    data[data_id].append(df)
+                
             except Exception as e:
                 print(f"Error leyendo {path}: {e}")
 
