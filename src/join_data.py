@@ -30,7 +30,10 @@ def main():
                 df = pd.read_csv(path)
                 df['datetime_utc'] = pd.to_datetime(df['datetime_utc'], utc=True)
 
+                # apply the filter here to keep the full dataset in case I need to adjust my approach later.
+                df = df[df['datetime_utc'].dt.minute == 0]                  
                 df = df[df['geo_name'].isin(SELECTED_GEO)]
+
                 unique_geos = df['geo_name'].nunique()
                 if unique_geos > 1:
                     pivot_df = df.pivot_table(index="datetime_utc",
