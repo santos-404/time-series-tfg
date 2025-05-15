@@ -3,14 +3,20 @@ import pandas as pd
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
+import argparse
 
-def plot_merged_data(file_path='data/merged_dataset.csv'):
+def plot_merged_data(file_path='data/merged_dataset.csv', year=None, month=None):
     """
     Plots data from the merged dataset CSV file where all data is organized in columns.
     Each column represents a different data series.
+    
+    Parameters:
+    file_path (str): Path to the merged CSV file
+    year (int, optional): If provided, only plot data for this specific year
+    month (int, optional): If provided, only plot data for this specific month
     """
-    # Define category mappings for each column
-    FEATURES_COLUMNS = {
+
+    COLUMN_FEATURES = {
         'hydraulic_71': 'Hydraulic Generation',
         'hydraulic_36': 'Hydraulic Generation',
         'hydraulic_1': 'Hydraulic Generation',
@@ -31,33 +37,47 @@ def plot_merged_data(file_path='data/merged_dataset.csv'):
         'average_demand_price_573_Melilla': 'Average Demand Price'
     }
     
-    # Get unique categories
-    FEATURES = sorted(set(FEATURES_COLUMNS.values()))
+    # Here I'm joining the data of the same feature on the same plot
+    FEATURES = sorted(set(COLUMN_FEATURES.values()))
     
     try:
-        # Load the merged dataset
         df = pd.read_csv(file_path, parse_dates=['datetime_utc'])
         df.set_index('datetime_utc', inplace=True)
         
-        # Setup plots
+        if year is not None and month is not None:
+            df = df[(df.index.year == year) & (df.index.month == month)]
+            date_filter_str = f"{month}/{year}"
+        elif year is not None:
+            df = df[df.index.year == year]
+            date_filter_str = f"Year {year}"
+        elif month is not None:
+            df = df[df.index.month == month]
+            date_filter_str = f"Month {month} (all years)"
+        else:
+            date_filter_str = "All data"
+            
+        if df.empty:
+            print(f"No data available for the specified time period: {date_filter_str}")
+            return
+        
         num_cats = len(FEATURES)
         cols = 2
         rows = math.ceil(num_cats / cols)
         fig, axes = plt.subplots(rows, cols, figsize=(15, rows * 4), sharex=True)
         axes = axes.flatten()
         
-        # Plot each category in its own subplot
-        for i, category in enumerate(FEATURES):
+        for i, feature in enumerate(FEATURES):
             ax = axes[i]
             
-            # Get columns that belong to this category
-            category_columns = [col for col, cat in FEATURES_COLUMNS.items() if cat == category and col in df.columns]
+            feature_columns = [col for col, cat in COLUMN_FEATURES.items() if cat == feature and col in df.columns]
             
-            # Plot each column in this category
-            for column in category_columns:
+            for column in feature_columns:
                 ax.plot(df.index, df[column], label=column)
             
-            ax.set_title(category)
+            title = feature
+            if year is not None or month is not None:
+                title += f" ({date_filter_str})"
+            ax.set_title(title)
             ax.set_xlabel('Time')
             ax.set_ylabel('Value')
             ax.legend(loc='best', fontsize='small')
@@ -73,4 +93,19 @@ def plot_merged_data(file_path='data/merged_dataset.csv'):
         print(f"Error processing merged dataset: {str(e)}")
 
 if __name__ == "__main__":
-    plot_merged_data()
+
+    parser = argparse.ArgumentParser(description='Plot energy data from merged dataset')
+    parser.add_argument('--file', type=str, default='data/merged_dataset.csv',
+                        help='Path to the merged dataset CSV file')
+    parser.add_argument('--year', type=int, default=None,
+                        help='Filter data to a specific year (e.g., 2023)')
+    parser.add_argument('--month', type=int, default=None,
+                        help='Filter data to a specific month (1-12)')
+    
+    args = parser.parse_args()
+    
+    if args.month is not None and (args.month < 1 or args.month > 12):
+        print("Error: Month must be between 1 and 12")
+        exit(1)
+        
+    plot_merged_data(file_path=args.file, year=args.year, month=args.month)
