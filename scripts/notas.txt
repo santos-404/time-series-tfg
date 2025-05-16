@@ -1,0 +1,18 @@
+probar con distintas ventanas y evaluar
+
+
+tratar con explicabilidad
+    librerias:
+        shap
+        lime
+
+graficas interacttivas
+para una fecha dada mostrar graficas, variables influyentes, ... 
+
+por ejemplo de interés mostrar el shap del día 28A
+
+dar herramienta de días concretos, no dar conclusiones de los datos 
+
+
+force plot
+
