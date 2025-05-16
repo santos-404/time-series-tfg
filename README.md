@@ -6,6 +6,7 @@ This repository contains my Final Year Project (TFG) focused on pattern search i
 
 Additionally, I developed a web application to visualize and interact with the results, providing an intuitive interface for analysis and experimentation.
 
+The web app is in Spanish, as is the language of the final report.
 
 ## Data
 
