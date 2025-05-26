@@ -29,7 +29,7 @@ class TrainModelsView(APIView):
         try:
             predictor = TimeSeriesPredictor()
             
-            # Option 1: Load from CSV (your original approach)
+            # Option 1: Load from CSV. This should be the default approach here.
             if hasattr(settings, 'TIME_SERIES_CSV_PATH'):
                 train_df, val_df, test_df, date_time = predictor.load_data_from_csv(
                     settings.TIME_SERIES_CSV_PATH
