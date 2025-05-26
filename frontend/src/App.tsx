@@ -1,11 +1,14 @@
 import "./index.css";
 
-export function App() {
-  return (
-    <div className="bg-red">
-      Hola
-    </div>
-  );
-}
+import { Navbar } from './components/layout/Navbar';
+import { Footer } from './components/layout/Footer';
 
-export default App;
+export const App: React.FC = () => (
+  <div className="flex flex-col min-h-screen">
+    <Navbar />
+    <main className="flex-grow">
+      {/* Tu contenido */}
+    </main>
+    <Footer />
+  </div>
+);
