@@ -75,7 +75,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8888",
 ]
 
-# I'm not sure if this is fully needed.
+# If this is not set the dataset must be selected. 
 TIME_SERIES_CSV_PATH = os.path.join(BASE_DIR, 'data', 'merged_dataset.csv')
 
 # Media files for model storage
