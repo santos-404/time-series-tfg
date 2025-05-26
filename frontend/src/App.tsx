@@ -2,7 +2,8 @@ import "./index.css";
 
 export function App() {
   return (
-    <div className="">
+    <div className="bg-red">
+      Hola
     </div>
   );
 }
