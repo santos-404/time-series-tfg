@@ -1,6 +1,5 @@
 # core/urls.py
 from django.urls import path
-from . import views
 from .views import (
     TrainModelsView, 
     PredictView, 
@@ -9,10 +8,7 @@ from .views import (
 )
 
 urlpatterns = [
-    # TODO: Remove this. See core/views.py to read the reason behind this.
-    path('home/', views.home, name='home'),
-    path('', views.home, name='home'),    
-    
+    # The api/v1/ might be moved to the main urls.py file
     path('api/v1/upload/', DataUploadView.as_view(), name='data-upload'),
     path('api/v1/train/', TrainModelsView.as_view(), name='train-models'),
     path('api/v1/predict/', PredictView.as_view(), name='predict'),

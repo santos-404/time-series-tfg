@@ -12,14 +12,8 @@ from .utils.time_series_utils import TimeSeriesPredictor
 from .serializers import (
     PredictionRequestSerializer, 
     # PredictionResponseSerializer,
-#     TimeSeriesDataSerializer
+    # TimeSeriesDataSerializer
 )
-
-# This will be erased. Was just a tryout
-# TODO: Remove this.
-from django.shortcuts import render
-def home(request):
-    return render(request, "home.html")
 
 class TrainModelsView(APIView):
     """
