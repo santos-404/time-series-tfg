@@ -107,8 +107,9 @@ class TimeSeriesPredictor:
         date_time = pd.to_datetime(df.pop('datetime_utc'))
         
         # Fill missing values. I think my dataset doesn't need it though
+        # It does need it XD
         df = df.ffill()
-        
+
         # Split data. I'm using 60/20/20
         n = len(df)
         train_df = df[0:int(n*0.6)]

@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.conf import settings
 from django.utils import timezone
-from datetime import timedelta
+from datetime import timedelta, datetime
 import pandas as pd
 import os
 
@@ -19,15 +19,64 @@ class TrainModelsView(APIView):
     """
     One-time endpoint to train all models
     """
+    
+    def _populate_database_from_csv(self, csv_path):
+        """Load CSV data into database after training"""
+        try:
+            df = pd.read_csv(csv_path)
+            df['datetime_utc'] = pd.to_datetime(df['datetime_utc'])
+            df = df.ffill()
+            
+            # Create records in batches for efficiency
+            batch_size = 1000
+            records = []
+            
+            for _, row in df.iterrows():
+                # Create a record dict, excluding datetime_utc which needs special handling
+                record_data = row.to_dict()
+                datetime_val = record_data.pop('datetime_utc')
+                
+                record = TimeSeriesData(
+                    datetime_utc=datetime_val,
+                    **record_data
+                )
+                records.append(record)
+                
+                # Bulk create when batch is full
+                if len(records) >= batch_size:
+                    TimeSeriesData.objects.bulk_create(records)
+                    records = []
+            
+            # Create remaining records
+            if records:
+                TimeSeriesData.objects.bulk_create(records)
+                
+            return TimeSeriesData.objects.count()
+            
+        except Exception as e:
+            raise Exception(f"Failed to populate database: {str(e)}")
+    
     def post(self, request):
         try:
             predictor = TimeSeriesPredictor()
+
+            force_populate = request.data.get('populate_database', False)
+            db_is_empty = not TimeSeriesData.objects.exists()
+            should_populate_db = db_is_empty or force_populate
             
             # Option 1: Load from CSV. This should be the default approach here.
             if hasattr(settings, 'TIME_SERIES_CSV_PATH'):
                 train_df, val_df, test_df, date_time = predictor.load_data_from_csv(
                     settings.TIME_SERIES_CSV_PATH
                 )
+                
+                # POPULATE DATABASE FROM CSV only if conditions are met
+                if should_populate_db:
+                    records_created = self._populate_database_from_csv(settings.TIME_SERIES_CSV_PATH)
+                else:
+                    # Count existing records for response
+                    records_created = TimeSeriesData.objects.count()
+                    
             else:
                 # Option 2: Load from database
                 queryset = TimeSeriesData.objects.all().order_by('datetime_utc')
@@ -37,6 +86,7 @@ class TrainModelsView(APIView):
                     }, status=status.HTTP_400_BAD_REQUEST)
                 
                 train_df, val_df, test_df, date_time = predictor.load_data_from_queryset(queryset)
+                records_created = queryset.count()
             
             # Train all models
             performance = predictor.train_all_models(train_df, val_df, test_df)
@@ -58,11 +108,21 @@ class TrainModelsView(APIView):
             with open(os.path.join(models_dir, 'normalization_params.pkl'), 'wb') as f:
                 pickle.dump(norm_params, f)
             
-            return Response({
+            response_data = {
                 'message': 'Models trained successfully',
                 'performance': performance,
-                'models_saved': list(predictor.models.keys())
-            })
+                'models_saved': list(predictor.models.keys()),
+                'database_records': records_created
+            }
+            
+            # Add info about database population
+            if should_populate_db and hasattr(settings, 'TIME_SERIES_CSV_PATH'):
+                response_data['database_populated'] = True
+                response_data['population_reason'] = 'empty_database' if db_is_empty else 'explicitly_requested'
+            else:
+                response_data['database_populated'] = False
+            
+            return Response(response_data)
             
         except Exception as e:
             return Response({
@@ -121,8 +181,8 @@ class PredictView(APIView):
             hours_ahead = serializer.validated_data['hours_ahead']
             input_hours = serializer.validated_data['input_hours']
             
-            # Get recent data
-            end_time = timezone.now()
+            # Im using this date so the 28/04/25 is shown 
+            end_time = timezone.make_aware(datetime(2025, 4, 30))
             start_time = end_time - timedelta(hours=input_hours)
             
             recent_data = TimeSeriesData.objects.filter(
@@ -202,7 +262,7 @@ class HistoricalDataView(APIView):
                     'average_demand_price_573_Melilla'
                 ]
             
-            end_time = timezone.now()
+            end_time = timezone.make_aware(datetime(2025, 4, 30))
             start_time = end_time - timedelta(days=days)
             
             queryset = TimeSeriesData.objects.filter(
