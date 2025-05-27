@@ -173,7 +173,6 @@ class HistoricalDataView(APIView):
     """
     def get(self, request):
         try:
-            # Get query parameters
             days = int(request.query_params.get('days', 7))
             columns = request.query_params.get('columns', '').split(',')
             
@@ -181,14 +180,28 @@ class HistoricalDataView(APIView):
             if not columns or columns == ['']:
                 columns = [
                     'daily_spot_market_600_España',
+                    'daily_spot_market_600_Portugal',
+                    
                     'scheduled_demand_365',
+                    'scheduled_demand_358', 
+                    'scheduled_demand_372',
+                    'peninsula_forecast_460',
+
                     'hydraulic_71',
+                    'hydraulic_36',
+                    'hydraulic_1',
                     'solar_14',
                     'wind_12',
-                    'nuclear_39'
+                    'nuclear_39',
+                    'nuclear_4',
+                    'nuclear_74',
+                    
+                    'average_demand_price_573_Baleares',
+                    'average_demand_price_573_Canarias',
+                    'average_demand_price_573_Ceuta',
+                    'average_demand_price_573_Melilla'
                 ]
             
-            # Get data
             end_time = timezone.now()
             start_time = end_time - timedelta(days=days)
             
@@ -240,7 +253,15 @@ class DataUploadView(APIView):
             df = pd.read_csv(csv_file)
             
             # Validate columns
-            required_columns = ['datetime_utc', 'daily_spot_market_600_España']
+            required_columns = [
+                'datetime_utc', 'hydraulic_71', 'hydraulic_36', 'hydraulic_1',
+                'solar_14', 'wind_12', 'nuclear_39', 'nuclear_4', 'nuclear_74',
+                'peninsula_forecast_460', 'scheduled_demand_365', 'scheduled_demand_358',
+                'scheduled_demand_372', 'daily_spot_market_600_España',
+                'daily_spot_market_600_Portugal', 'average_demand_price_573_Baleares',
+                'average_demand_price_573_Canarias', 'average_demand_price_573_Ceuta',
+                'average_demand_price_573_Melilla'
+            ]
             missing_columns = [col for col in required_columns if col not in df.columns]
             
             if missing_columns:
