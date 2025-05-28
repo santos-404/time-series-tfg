@@ -9,7 +9,7 @@ const DashboardHeader = ({ viewMode, setViewMode, selectedDay }) => (
         </h1>
         <p className="text-gray-600 mt-1">
           {viewMode === 'overview' ? 
-            'Vista mensual de los datos elétricos' : 
+            'Vista semanal de los datos elétricos' : 
             `Análisis detallado del día ${selectedDay?.date || 'seleccionado'}`
           }
         </p>
