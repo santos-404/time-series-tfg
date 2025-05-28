@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react';
 import { useFetch } from '@/hooks/useFetch';
-import DashboardHeader from './DashboardHeader';
-import OverviewSection from './OverviewSection';
-import DetailedSection from './DetailedSection';
-import Loading from '../ui/loading';
-import Error from '../ui/error';
+import OverviewSection from '@/components/dashboard/OverviewSection';
+import DashboardHeader from '@/components/dashboard/DashboardHeader';
+import DetailedSection from '@/components/dashboard/DetailedSection';
+import Loading from '@/components/ui/loading';
+import Error from '@/components/ui/error';
 import type { HistoricalData } from '@/types/HistoricalData';
 
 // I obviously know that is not a good practice. But this is not aim to be deployed
@@ -40,7 +40,7 @@ const TimeSeriesDashboard = () => {
   return (
     <div className="p-6">
       <div className="max-w-7xl mx-auto">
-        <DashboardHeader 
+        <DashboardHeader
           viewMode={viewMode} 
           setViewMode={setViewMode}
           selectedDay={selectedDay}
