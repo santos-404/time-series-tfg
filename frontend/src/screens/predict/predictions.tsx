@@ -3,6 +3,7 @@ import { usePredictions } from '@/hooks/usePredictions';
 import { useFetch } from '@/hooks/useFetch'; 
 import type { PredictionRequest } from '@/types/PredictionRequest';
 import type { HistoricalData } from '@/types/HistoricalData';
+import PredictionChart from '@/components/predictions/PredictionChart';
 
 // I obviously know that is not a good practice. But this is not aim to be deployed
 const API_URL = 'http://127.0.0.1:7777'
@@ -26,11 +27,10 @@ const Predictions = () => {
     { value: 'lstm', label: 'Red Neuronal LSTM', description: 'Dependencias temporales' }
   ];
 
-  const featureGroups = {
-    'Fuentes de energía': ['hydraulic_1', 'hydraulic_36', 'hydraulic_71', 'solar_14', 'wind_12', 'nuclear_4', 'nuclear_39', 'nuclear_74'],
-    'Precios del mercado': ['daily_spot_market_600_España', 'daily_spot_market_600_Portugal'],
-    'Demanda': ['scheduled_demand_365', 'scheduled_demand_358', 'scheduled_demand_372', 'peninsula_forecast_460'],
-    'Precios regionales': ['average_demand_price_573_Baleares', 'average_demand_price_573_Canarias', 'average_demand_price_573_Ceuta', 'average_demand_price_573_Melilla']
+  const inputFeatures = {
+    'Fuentes de energía': ['hydraulic_1', 'hydraulic_36', 'solar_14', 'wind_12', 'nuclear_4', 'nuclear_39'],
+    'Demanda': ['scheduled_demand_365', 'peninsula_forecast_460'],
+    'Precios regionales': ['average_demand_price_573_Baleares', 'average_demand_price_573_Canarias']
   };
 
   // Combine historical and prediction data for visualization
@@ -64,10 +64,6 @@ const Predictions = () => {
     await predict(predictionConfig);
   };
 
-  const handleMetricGroupChange = (groupName: string) => {
-    setSelectedMetrics(featureGroups[groupName]);
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -77,7 +73,8 @@ const Predictions = () => {
             Predicciones sobre el mercado eléctrico 
           </h1>
           <p className="mt-2 text-gray-600">
-            Realiza predicciones con modelos ya entrenados 
+            Realiza predicciones con modelos ya entrenados. 
+            <a href="/train-models" className='text-blue-800'> (Pulsa aquí si todavía no los has entrenado)</a>
           </p>
         </div>
 
@@ -188,107 +185,45 @@ const Predictions = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Selecciona las métricas que deseas mostrar</h2>
+          <h2 className="text-xl font-semibold mb-4">Variables de entrada para la predicción</h2>
+          <p className="text-gray-600 mb-4">
+            El modelo utiliza las siguientes variables para predecir el precio spot de electricidad:
+          </p>
           
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">Selección rápida:</label>
-            <div className="flex flex-wrap gap-2">
-              {Object.keys(featureGroups).map(groupName => (
-                <button
-                  key={groupName}
-                  onClick={() => handleMetricGroupChange(groupName)}
-                  className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-full"
-                >
-                  {groupName}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-            {Object.entries(featureGroups).map(([groupName, features]) => (
-              <div key={groupName}>
-                <h4 className="font-medium text-gray-700 mb-2">{groupName}</h4>
-                {features.map(feature => (
-                  <label key={feature} className="flex items-center mb-1">
-                    <input
-                      type="checkbox"
-                      checked={selectedMetrics.includes(feature)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedMetrics(prev => [...prev, feature]);
-                        } else {
-                          setSelectedMetrics(prev => prev.filter(m => m !== feature));
-                        }
-                      }}
-                      className="mr-2"
-                    />
-                    <span className="text-xs">{feature.replace(/_/g, ' ')}</span>
-                  </label>
-                ))}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {Object.entries(inputFeatures).map(([groupName, features]) => (
+              <div key={groupName} className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-medium text-gray-800 mb-3">{groupName}</h4>
+                <ul className="space-y-1">
+                  {features.map(feature => (
+                    <li key={feature} className="text-sm text-gray-600">
+                      • {feature.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    </li>
+                  ))}
+                </ul>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Results Section */}
+
         {predictionData && (
           <>
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-white rounded-lg shadow p-6 text-center">
-                <div className="text-2xl font-bold text-blue-600">
-                  {predictionData.model_used.toUpperCase()}
-                </div>
-                <div className="text-sm text-gray-600">Model Used</div>
-              </div>
-              <div className="bg-white rounded-lg shadow p-6 text-center">
-                <div className="text-2xl font-bold text-green-600">
-                  {predictionData.predictions.length}
-                </div>
-                <div className="text-sm text-gray-600">Hours Predicted</div>
-              </div>
-              <div className="bg-white rounded-lg shadow p-6 text-center">
-                <div className="text-2xl font-bold text-purple-600">
-                  {predictionData.input_data.hours_used}
-                </div>
-                <div className="text-sm text-gray-600">Input Hours Used</div>
-              </div>
-              <div className="bg-white rounded-lg shadow p-6 text-center">
-                <div className="text-2xl font-bold text-orange-600">
-                  {selectedMetrics.length}
-                </div>
-                <div className="text-sm text-gray-600">Features Displayed</div>
-              </div>
-            </div>
-
-            {/* Chart Section */}
             <div className="bg-white rounded-lg shadow-lg p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Historical Data vs Predictions</h2>
-                <div className="flex items-center space-x-4 text-sm">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-blue-500 rounded mr-2"></div>
-                    <span>Historical</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-red-500 rounded mr-2"></div>
-                    <span>Predicted</span>
-                  </div>
-                </div>
+                <h2 className="text-xl font-semibold">Datos históricos y predicciones</h2>
               </div>
               
-              <PredictionChart 
-                data={combinedData}
-                selectedMetrics={selectedMetrics}
-                predictionStartTime={predictionData.input_data.end_time}
-                loading={historyLoading}
+              <PredictionChart
+                predictionData={predictionData}
+                historicalData={historicalData?.data}
+                showHistorical={true}
+                chartType="line"
               />
             </div>
           </>
         )}
 
-        {/* Initial State */}
         {!predictionData && !predictionLoading && (
           <div className="bg-white rounded-lg shadow-lg p-12 text-center">
             <div className="text-gray-400 mb-4">
@@ -304,30 +239,6 @@ const Predictions = () => {
             </p>
           </div>
         )}
-      </div>
-    </div>
-  );
-};
-
-const PredictionChart = ({ data, selectedMetrics, predictionStartTime, loading }) => {
-  if (loading) {
-    return (
-      <div className="h-96 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="h-96 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg">
-      <div className="text-center">
-        <p className="text-gray-500 mb-2">Chart Implementation</p>
-        <p className="text-sm text-gray-400">
-          Integrate with your existing chart library (Recharts, Chart.js, etc.)
-        </p>
-        <p className="text-xs text-gray-400 mt-2">
-          Data points: {data.length} | Features: {selectedMetrics.length}
-        </p>
       </div>
     </div>
   );

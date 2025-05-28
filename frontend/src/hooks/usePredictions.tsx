@@ -1,21 +1,6 @@
+import type { PredictionRequest } from '@/types/PredictionRequest';
+import type { PredictionResponse } from '@/types/PredictionResponse';
 import { useState, useCallback } from 'react';
-
-interface PredictionRequest {
-  model_name: 'linear' | 'dense' | 'conv' | 'lstm';
-  hours_ahead: number;
-  input_hours: number;
-}
-
-interface PredictionResponse {
-  predictions: number[][];
-  timestamps: string[];
-  model_used: string;
-  input_data: {
-    hours_used: number;
-    start_time: string;
-    end_time: string;
-  };
-}
 
 interface UsePredictionsReturn {
   predictionData: PredictionResponse | null;
@@ -36,7 +21,7 @@ export const usePredictions = (baseUrl: string): UsePredictionsReturn => {
     setError(null);
     
     try {
-      const response = await fetch(`${baseUrl}/api/v1/predict`, {
+      const response = await fetch(`${baseUrl}/api/v1/predict/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

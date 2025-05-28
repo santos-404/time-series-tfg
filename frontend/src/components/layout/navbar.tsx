@@ -8,6 +8,7 @@ export const Navbar: React.FC = () => {
         
         <div> 
           <a href="/predict" className="mx-4 font-semibold">Predecir</a>
+          <a href="/train-models" className="mx-4 font-semibold">Entrena un modelo</a>
           <a href="/downloads" className="mx-4 font-semibold">Descargar datos</a>
         </div>
       </div>
