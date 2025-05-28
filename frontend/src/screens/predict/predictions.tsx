@@ -1,0 +1,336 @@
+import { useState, useMemo } from 'react';
+import { usePredictions } from '@/hooks/usePredictions';
+import { useFetch } from '@/hooks/useFetch'; 
+import type { PredictionRequest } from '@/types/PredictionRequest';
+import type { HistoricalData } from '@/types/HistoricalData';
+
+// I obviously know that is not a good practice. But this is not aim to be deployed
+const API_URL = 'http://127.0.0.1:7777'
+
+const Predictions = () => {
+  const [predictionConfig, setPredictionConfig] = useState<PredictionRequest>({
+    model_name: 'lstm',
+    hours_ahead: 1,
+    input_hours: 24
+  });
+
+  const [selectedMetrics, setSelectedMetrics] = useState(['hydraulic_1', 'solar_14', 'wind_12', 'nuclear_4']);
+  const { predictionData, loading: predictionLoading, error: predictionError, predict } = usePredictions(API_URL);
+  
+  const { data: historicalData, loading: historyLoading } = useFetch<HistoricalData>(`${API_URL}/api/v1/historical?days=7`);
+
+  const modelOptions = [
+    { value: 'linear', label: 'Modelo Lineal', description: 'Regresión lineal simple' },
+    { value: 'dense', label: 'Red Neuronal Densa', description: 'Capas completamente conectadas' },
+    { value: 'conv', label: 'Red Neuronal Convolucional', description: 'Reconocimiento de patrones' },
+    { value: 'lstm', label: 'Red Neuronal LSTM', description: 'Dependencias temporales' }
+  ];
+
+  const featureGroups = {
+    'Fuentes de energía': ['hydraulic_1', 'hydraulic_36', 'hydraulic_71', 'solar_14', 'wind_12', 'nuclear_4', 'nuclear_39', 'nuclear_74'],
+    'Precios del mercado': ['daily_spot_market_600_España', 'daily_spot_market_600_Portugal'],
+    'Demanda': ['scheduled_demand_365', 'scheduled_demand_358', 'scheduled_demand_372', 'peninsula_forecast_460'],
+    'Precios regionales': ['average_demand_price_573_Baleares', 'average_demand_price_573_Canarias', 'average_demand_price_573_Ceuta', 'average_demand_price_573_Melilla']
+  };
+
+  // Combine historical and prediction data for visualization
+  const combinedData = useMemo(() => {
+    if (!historicalData?.data) return [];
+    
+    const historical = historicalData.data.map(item => ({
+      ...item,
+      fullDate: new Date(item.datetime),
+      isPrediction: false
+    }));
+
+    if (!predictionData) return historical;
+    
+    const predictions = predictionData.predictions.map((pred, index) => ({
+      datetime: predictionData.timestamps[index],
+      fullDate: new Date(predictionData.timestamps[index]),
+      isPrediction: true,
+      ...Object.fromEntries(
+        selectedMetrics.map((metric, metricIndex) => [
+          metric, 
+          pred[metricIndex] || pred[0]
+        ])
+      )
+    }));
+    
+    return [...historical, ...predictions];
+  }, [historicalData, predictionData, selectedMetrics]);
+
+  const handlePredict = async () => {
+    await predict(predictionConfig);
+  };
+
+  const handleMetricGroupChange = (groupName: string) => {
+    setSelectedMetrics(featureGroups[groupName]);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">
+            Predicciones sobre el mercado eléctrico 
+          </h1>
+          <p className="mt-2 text-gray-600">
+            Realiza predicciones con modelos ya entrenados 
+          </p>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <h2 className="text-xl font-semibold mb-6">Configuración de la predicción</h2>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <h3 className="text-lg font-medium mb-4">Selecciona el modelo</h3>
+              <div className="grid grid-cols-1 gap-3">
+                {modelOptions.map(option => (
+                  <label key={option.value} className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      name="model"
+                      value={option.value}
+                      checked={predictionConfig.model_name === option.value}
+                      onChange={(e) => setPredictionConfig(prev => ({
+                        ...prev,
+                        model_name: e.target.value as any
+                      }))}
+                      className="mr-3"
+                    />
+                    <div>
+                      <div className="font-medium">{option.label}</div>
+                      <div className="text-sm text-gray-500">{option.description}</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-medium mb-4">Parámetros</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Horas a predecir: {predictionConfig.hours_ahead}
+                  </label>
+                  <input
+                    type="range"
+                    min="1"
+                    max="24"
+                    value={predictionConfig.hours_ahead}
+                    onChange={(e) => setPredictionConfig(prev => ({
+                      ...prev,
+                      hours_ahead: parseInt(e.target.value)
+                    }))}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>1 hora</span>
+                    <span>24 horas</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Ventana de entrada: {predictionConfig.input_hours} horas
+                  </label>
+                  <input
+                    type="range"
+                    min="1"
+                    max="168"
+                    step="4"
+                    value={predictionConfig.input_hours}
+                    onChange={(e) => setPredictionConfig(prev => ({
+                      ...prev,
+                      input_hours: parseInt(e.target.value)
+                    }))}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>1 hora</span>
+                    <span>168 horas</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handlePredict}
+                  disabled={predictionLoading}
+                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                >
+                  {predictionLoading ? (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Generando predicción...
+                    </div>
+                  ) : (
+                    'Generar predicción'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {predictionError && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex">
+                <div className="text-red-400">⚠️</div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800">¡Hubo un fallo en la predicción!</h3>
+                  <p className="text-sm text-red-700 mt-1">{predictionError}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <h2 className="text-xl font-semibold mb-4">Selecciona las métricas que deseas mostrar</h2>
+          
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2">Selección rápida:</label>
+            <div className="flex flex-wrap gap-2">
+              {Object.keys(featureGroups).map(groupName => (
+                <button
+                  key={groupName}
+                  onClick={() => handleMetricGroupChange(groupName)}
+                  className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-full"
+                >
+                  {groupName}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+            {Object.entries(featureGroups).map(([groupName, features]) => (
+              <div key={groupName}>
+                <h4 className="font-medium text-gray-700 mb-2">{groupName}</h4>
+                {features.map(feature => (
+                  <label key={feature} className="flex items-center mb-1">
+                    <input
+                      type="checkbox"
+                      checked={selectedMetrics.includes(feature)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedMetrics(prev => [...prev, feature]);
+                        } else {
+                          setSelectedMetrics(prev => prev.filter(m => m !== feature));
+                        }
+                      }}
+                      className="mr-2"
+                    />
+                    <span className="text-xs">{feature.replace(/_/g, ' ')}</span>
+                  </label>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Results Section */}
+        {predictionData && (
+          <>
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <div className="bg-white rounded-lg shadow p-6 text-center">
+                <div className="text-2xl font-bold text-blue-600">
+                  {predictionData.model_used.toUpperCase()}
+                </div>
+                <div className="text-sm text-gray-600">Model Used</div>
+              </div>
+              <div className="bg-white rounded-lg shadow p-6 text-center">
+                <div className="text-2xl font-bold text-green-600">
+                  {predictionData.predictions.length}
+                </div>
+                <div className="text-sm text-gray-600">Hours Predicted</div>
+              </div>
+              <div className="bg-white rounded-lg shadow p-6 text-center">
+                <div className="text-2xl font-bold text-purple-600">
+                  {predictionData.input_data.hours_used}
+                </div>
+                <div className="text-sm text-gray-600">Input Hours Used</div>
+              </div>
+              <div className="bg-white rounded-lg shadow p-6 text-center">
+                <div className="text-2xl font-bold text-orange-600">
+                  {selectedMetrics.length}
+                </div>
+                <div className="text-sm text-gray-600">Features Displayed</div>
+              </div>
+            </div>
+
+            {/* Chart Section */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold">Historical Data vs Predictions</h2>
+                <div className="flex items-center space-x-4 text-sm">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-blue-500 rounded mr-2"></div>
+                    <span>Historical</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-red-500 rounded mr-2"></div>
+                    <span>Predicted</span>
+                  </div>
+                </div>
+              </div>
+              
+              <PredictionChart 
+                data={combinedData}
+                selectedMetrics={selectedMetrics}
+                predictionStartTime={predictionData.input_data.end_time}
+                loading={historyLoading}
+              />
+            </div>
+          </>
+        )}
+
+        {/* Initial State */}
+        {!predictionData && !predictionLoading && (
+          <div className="bg-white rounded-lg shadow-lg p-12 text-center">
+            <div className="text-gray-400 mb-4">
+              <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Genera predicciones 
+            </h3>
+            <p className="text-gray-600">
+              Configura el modelo y pulsa el botón "Generar predicción" para ver los valores predichos.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const PredictionChart = ({ data, selectedMetrics, predictionStartTime, loading }) => {
+  if (loading) {
+    return (
+      <div className="h-96 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-96 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg">
+      <div className="text-center">
+        <p className="text-gray-500 mb-2">Chart Implementation</p>
+        <p className="text-sm text-gray-400">
+          Integrate with your existing chart library (Recharts, Chart.js, etc.)
+        </p>
+        <p className="text-xs text-gray-400 mt-2">
+          Data points: {data.length} | Features: {selectedMetrics.length}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default Predictions;

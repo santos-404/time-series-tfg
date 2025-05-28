@@ -38,7 +38,7 @@ const TimeSeriesDashboard = () => {
   if (error) return <Error error={error} />;
 
   return (
-    <div className="p-6">
+    <div className="bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         <DashboardHeader
           viewMode={viewMode} 
