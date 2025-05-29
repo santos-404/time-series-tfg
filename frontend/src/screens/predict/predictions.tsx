@@ -35,6 +35,12 @@ const Predictions = () => {
 
   const handlePredict = async () => {
     await predict(predictionConfig);
+
+    // The point here is to scroll to the bottom of the screen. But the screen get bigger
+    // when the plot is generated for the 1st time. Thats the reason behind waiting 200ms
+    setTimeout(() => {
+      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+    }, 200);
   };
 
   return (
