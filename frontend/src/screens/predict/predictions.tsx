@@ -15,7 +15,6 @@ const Predictions = () => {
     input_hours: 24
   });
 
-  const [selectedMetrics, setSelectedMetrics] = useState(['hydraulic_1', 'solar_14', 'wind_12', 'nuclear_4']);
   const { predictionData, loading: predictionLoading, error: predictionError, predict } = usePredictions(API_URL);
   
   const { data: historicalData, loading: historyLoading } = useFetch<HistoricalData>(`${API_URL}/api/v1/historical?days=7`);
@@ -33,33 +32,6 @@ const Predictions = () => {
     'Precios regionales': ['average_demand_price_573_Baleares', 'average_demand_price_573_Canarias']
   };
 
-  // Combine historical and prediction data for visualization
-  const combinedData = useMemo(() => {
-    if (!historicalData?.data) return [];
-    
-    const historical = historicalData.data.map(item => ({
-      ...item,
-      fullDate: new Date(item.datetime),
-      isPrediction: false
-    }));
-
-    if (!predictionData) return historical;
-    
-    const predictions = predictionData.predictions.map((pred, index) => ({
-      datetime: predictionData.timestamps[index],
-      fullDate: new Date(predictionData.timestamps[index]),
-      isPrediction: true,
-      ...Object.fromEntries(
-        selectedMetrics.map((metric, metricIndex) => [
-          metric, 
-          pred[metricIndex] || pred[0]
-        ])
-      )
-    }));
-    
-    return [...historical, ...predictions];
-  }, [historicalData, predictionData, selectedMetrics]);
-
   const handlePredict = async () => {
     await predict(predictionConfig);
   };
@@ -67,7 +39,7 @@ const Predictions = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
+
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
             Predicciones sobre el mercado eléctrico 
