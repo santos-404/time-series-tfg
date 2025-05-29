@@ -3,4 +3,3 @@ export interface PredictionRequest {
   hours_ahead: number;
   input_hours: number;
 }
-

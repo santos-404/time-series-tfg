@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { usePredictions } from '@/hooks/usePredictions';
 import { useFetch } from '@/hooks/useFetch'; 
 import type { PredictionRequest } from '@/types/PredictionRequest';
@@ -9,6 +9,7 @@ import PredictionChart from '@/components/predictions/PredictionChart';
 const API_URL = 'http://127.0.0.1:7777'
 
 const Predictions = () => {
+  const [showHistorical, setShowHistorical] = useState<boolean>(true);
   const [predictionConfig, setPredictionConfig] = useState<PredictionRequest>({
     model_name: 'lstm',
     hours_ahead: 1,
@@ -17,7 +18,7 @@ const Predictions = () => {
 
   const { predictionData, loading: predictionLoading, error: predictionError, predict } = usePredictions(API_URL);
   
-  const { data: historicalData, loading: historyLoading } = useFetch<HistoricalData>(`${API_URL}/api/v1/historical?days=7`);
+  const { data: predictedHistoricalData, loading: historyLoading } = useFetch<HistoricalData>(`${API_URL}/api/v1/historical?days=7&columns=daily_spot_market_600_España`);
 
   const modelOptions = [
     { value: 'linear', label: 'Modelo Lineal', description: 'Regresión lineal simple' },
@@ -179,22 +180,41 @@ const Predictions = () => {
         </div>
 
 
-        {predictionData && (
-          <>
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Datos históricos y predicciones</h2>
-              </div>
-              
-              <PredictionChart
-                predictionData={predictionData}
-                historicalData={historicalData?.data}
-                showHistorical={true}
-                chartType="line"
-              />
+{predictionData && (
+  <>
+    <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold">Datos históricos y predicciones</h2>
+        <label className="flex items-center cursor-pointer">
+          <span className="mr-3 text-sm font-medium text-gray-700">
+            Mostrar históricos
+          </span>
+          <div className="relative">
+            <input
+              type="checkbox"
+              checked={showHistorical}
+              onChange={(e) => setShowHistorical(e.target.checked)}
+              className="sr-only"
+            />
+            <div className={`block w-14 h-8 rounded-full transition-colors ${
+              showHistorical ? 'bg-blue-600' : 'bg-gray-300'
+            }`}>
+              <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition transform ${
+                showHistorical ? 'translate-x-6' : ''
+              }`}></div>
             </div>
-          </>
-        )}
+          </div>
+        </label>
+      </div>
+      
+      <PredictionChart
+        predictionData={predictionData}
+        historicalData={predictedHistoricalData?.data}
+        showHistorical={showHistorical}
+      />
+    </div>
+  </>
+)}
 
         {!predictionData && !predictionLoading && (
           <div className="bg-white rounded-lg shadow-lg p-12 text-center">
