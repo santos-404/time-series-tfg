@@ -14,7 +14,6 @@ const TimeSeriesDashboard = () => {
   const [selectedDay, setSelectedDay] = useState(null);
   // These are the default values, They might be changed. And I think is a good idea to set groups of features 
   const [selectedMetrics, setSelectedMetrics] = useState(['hydraulic_1', 'solar_14', 'wind_12', 'nuclear_4']);
-  const [viewMode, setViewMode] = useState('overview'); // 'overview' or 'detailed'
   
   const { data: historicalData, loading, error } = useFetch<HistoricalData>(`${API_URL}/api/v1/historical`);
 
@@ -29,36 +28,18 @@ const TimeSeriesDashboard = () => {
     }));
   }, [historicalData]);
 
-  const handleDayClick = (data) => {
-    setSelectedDay(data);
-    setViewMode('detailed');
-  };
-
   if (loading) return <Loading />;
   if (error) return <Error error={error} />;
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        <DashboardHeader
-          viewMode={viewMode} 
-          setViewMode={setViewMode}
-          selectedDay={selectedDay}
+        <DashboardHeader/>
+        <OverviewSection 
+          data={processedData}
+          selectedMetrics={selectedMetrics}
+          setSelectedMetrics={setSelectedMetrics}
         />
-        
-        {viewMode === 'overview' ? (
-          <OverviewSection 
-            data={processedData}
-            selectedMetrics={selectedMetrics}
-            setSelectedMetrics={setSelectedMetrics}
-            onDayClick={handleDayClick}
-          />
-        ) : (
-          <DetailedSection 
-            selectedDay={selectedDay}
-            onBack={() => setViewMode('overview')}
-          />
-        )}
       </div>
     </div>
   );

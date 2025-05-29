@@ -1,5 +1,3 @@
-import React from 'react';
-
 const StatsGrid = ({ data, selectedMetrics }) => {
   const calculateStats = (metric) => {
     const values = data.map(d => d[metric]).filter(v => v != null);

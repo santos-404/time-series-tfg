@@ -2,7 +2,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import MetricSelector from './MetricSelector';
 import StatsGrid from './StatsGrid';
 
-const OverviewSection = ({ data, selectedMetrics, setSelectedMetrics, onDayClick }) => {
+const OverviewSection = ({ data, selectedMetrics, setSelectedMetrics }) => {
   const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'];
 
   return (
@@ -18,7 +18,7 @@ const OverviewSection = ({ data, selectedMetrics, setSelectedMetrics, onDayClick
           Tendencias semanales. Pulsa un dato para ver más información.
         </h3>
         <ResponsiveContainer width="100%" height={400}>
-          <LineChart data={data} onClick={onDayClick}>
+          <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
               dataKey="date" 
