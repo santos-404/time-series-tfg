@@ -77,8 +77,15 @@ const Predictions = () => {
                       }))}
                       className="mr-3"
                     />
-                    <div>
-                      <div className="font-medium">{option.label}</div>
+                    <div className="flex-1">
+                      <div className="flex items-center">
+                        <span className="font-medium">{option.label}</span>
+                        {option.value === 'lstm' && (
+                          <span className="ml-2 bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded-full">
+                            Recomendado
+                          </span>
+                        )}
+                      </div>
                       <div className="text-sm text-gray-500">{option.description}</div>
                     </div>
                   </label>
