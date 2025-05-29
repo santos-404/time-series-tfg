@@ -63,7 +63,7 @@ const TrainModels = () => {
         
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
-            Entrenar Modelos de Predicción
+            Entrenar modelos de predicción
           </h1>
           <p className="mt-2 text-gray-600">
             Entrena todos los modelos de machine learning para predicciones del mercado eléctrico con los datos descargados.
