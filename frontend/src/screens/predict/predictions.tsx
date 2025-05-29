@@ -84,8 +84,19 @@ const Predictions = () => {
               <h3 className="text-lg font-medium mb-4">Parámetros</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">
+                  <label className="block text-sm font-medium mb-2 flex items-center gap-2">
                     Horas a predecir: {predictionConfig.hours_ahead}
+                    <div className="relative group">
+                      <div className="w-4 h-4 bg-blue-100 border-2 border-blue-800 rounded-full flex items-center justify-center cursor-help">
+                        <span className="text-blue-800 text-xs font-bold">i</span>
+                      </div>
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-blue-100 border-2 border-blue-800 text-blue-800 text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none w-64 z-10">
+                        <div className="text-center">
+                          <strong>Horas a predecir:</strong> Define cuántas horas en el futuro quieres que el modelo haga la predicción. Por ejemplo, si seleccionas 6 horas, el modelo predecirá el consumo energético que ocurrirá 6 horas después del momento actual.
+                        </div>
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-blue-800"></div>
+                      </div>
+                    </div>
                   </label>
                   <input
                     type="range"
@@ -103,16 +114,25 @@ const Predictions = () => {
                     <span>24 horas</span>
                   </div>
                 </div>
-
                 <div>
-                  <label className="block text-sm font-medium mb-2">
+                  <label className="block text-sm font-medium mb-2 flex items-center gap-2">
                     Ventana de entrada: {predictionConfig.input_hours} horas
+                    <div className="relative group">
+                      <div className="w-4 h-4 bg-blue-100 border-2 border-blue-800 rounded-full flex items-center justify-center cursor-help">
+                        <span className="text-blue-800 text-xs font-bold">i</span>
+                      </div>
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-blue-100 border-2 border-blue-800 text-blue-800 text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none w-64 z-10">
+                        <div className="text-center">
+                          <strong>Ventana de entrada:</strong> Especifica cuántas horas de datos históricos utilizará el modelo para hacer la predicción. Una ventana más amplia permite capturar patrones a largo plazo, mientras que una ventana más pequeña se enfoca en tendencias recientes.
+                        </div>
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-blue-800"></div>
+                      </div>
+                    </div>
                   </label>
                   <input
                     type="range"
                     min="1"
                     max="168"
-                    step="4"
                     value={predictionConfig.input_hours}
                     onChange={(e) => setPredictionConfig(prev => ({
                       ...prev,
@@ -125,7 +145,6 @@ const Predictions = () => {
                     <span>168 horas</span>
                   </div>
                 </div>
-
                 <button
                   onClick={handlePredict}
                   disabled={predictionLoading}
