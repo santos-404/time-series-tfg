@@ -89,7 +89,7 @@ class TrainModelsView(APIView):
                 records_created = queryset.count()
             
             # Train all models
-            performance = predictor.train_all_models(train_df, val_df, test_df)
+            performance = predictor.train_models(train_df, val_df, test_df)
             
             # Save models to disk (optional)
             models_dir = os.path.join(settings.MEDIA_ROOT, 'models')
@@ -194,15 +194,12 @@ class PredictView(APIView):
                     'error': f'Not enough recent data. Need {input_hours} hours, got {recent_data.count()}'
                 }, status=status.HTTP_400_BAD_REQUEST)
             
-            # Convert to numpy array
             df = pd.DataFrame.from_records(recent_data.values())
             df = df.drop(['id', 'datetime_utc'], axis=1)
             data_array = df.values
             
-            # Make prediction
             result = self.predictor.predict(model_name, data_array, hours_ahead)
             
-            # Generate future timestamps
             last_timestamp = recent_data.last().datetime_utc
             future_timestamps = [
                 last_timestamp + timedelta(hours=i+1) 
