@@ -148,7 +148,7 @@ class TimeSeriesPredictor:
         
         train_df = (train_df - self.train_mean) / self.train_std
         val_df = (val_df - self.train_mean) / self.train_std
-        test_df = (test_df - self.train_std) / self.train_std
+        test_df = (test_df - self.train_mean) / self.train_std
         
         self.column_indices = {name: i for i, name in enumerate(df.columns)}
         
