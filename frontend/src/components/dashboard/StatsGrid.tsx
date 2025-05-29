@@ -11,7 +11,7 @@ const StatsGrid = ({ data, selectedMetrics }) => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {selectedMetrics.slice(0, 3).map(metric => {
+      {selectedMetrics.map(metric => {
         const stats = calculateStats(metric);
         return (
           <div key={metric} className="bg-white rounded-xl shadow-lg p-6">
