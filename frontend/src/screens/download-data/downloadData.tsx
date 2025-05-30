@@ -1,18 +1,15 @@
+import type { DownloadResponse } from '@/types/DownloadData';
+import type { MergeResponse } from '@/types/MergeData';
 import { useState } from 'react';
 
 // I obviously know that is not a good practice. But this is not aim to be deployed
 const API_URL = 'http://127.0.0.1:7777';
 
-interface DownloadResponse {
-  message: string;
-  data_directory: string;
-  downloaded_files: string[];
-  errors: string[];
-}
-
 const DownloadData = () => {
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isMerging, setIsMerging] = useState(false);
   const [downloadResults, setDownloadResults] = useState<DownloadResponse | null>(null);
+  const [mergeResults, setMergeResults] = useState<MergeResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [esiosToken, setEsiosToken] = useState('');
   const [downloadIndicators, setDownloadIndicators] = useState(false);
@@ -38,6 +35,7 @@ const DownloadData = () => {
     setIsDownloading(true);
     setError(null);
     setDownloadResults(null);
+    setMergeResults(null);
 
     try {
       const response = await fetch(`${API_URL}/api/v1/data/download/`, {
@@ -69,6 +67,39 @@ const DownloadData = () => {
       setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
       setIsDownloading(false);
+    }
+  };
+
+  const handleMergeData = async () => {
+    setIsMerging(true);
+    setError(null);
+    setMergeResults(null);
+
+    try {
+      const response = await fetch(`${API_URL}/api/v1/data/merge/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al construir el dataset');
+      }
+
+      const data = await response.json();
+      setMergeResults(data);
+      
+      // Scroll to results
+      setTimeout(() => {
+        window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+      }, 200);
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido');
+    } finally {
+      setIsMerging(false);
     }
   };
 
@@ -186,11 +217,21 @@ const DownloadData = () => {
               </label>
             </div>
 
-            <p>
-              El proceso de descarga de datos puede ser lento y durar varios minutos.
-              Una vez descargados los datos, tendrás que unirlos y limpiarlos pulsando en 
-              "Construir dataset de entrenamiento".
-            </p>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex">
+                <div className="text-yellow-400">⚠️</div>
+                <div className="ml-3">
+                  <p className="text-sm text-yellow-800">
+                    <strong>Proceso de 2 pasos:</strong>
+                  </p>
+                  <ol className="text-sm text-yellow-700 mt-2 space-y-1">
+                    <li>1. <strong>Descargar datos:</strong> Puede tardar varios minutos</li>
+                    <li>2. <strong>Construir dataset:</strong> Una vez descargados los datos, usa el botón "Construir dataset de entrenamiento" para unir y limpiar todos los archivos</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+
             <button
               onClick={handleDownloadData}
               disabled={isDownloading || !esiosToken.trim()}
@@ -240,7 +281,7 @@ const DownloadData = () => {
             <div className="flex">
               <div className="text-red-400">⚠️</div>
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-800">Error en la descarga</h3>
+                <h3 className="text-sm font-medium text-red-800">Error</h3>
                 <p className="text-sm text-red-700 mt-1">{error}</p>
               </div>
             </div>
@@ -275,14 +316,42 @@ const DownloadData = () => {
               </div>
 
               <div className="bg-blue-50 p-4 rounded-lg">
-                <h3 className="font-medium text-blue-800 mb-3">Próximos pasos</h3>
+                <h3 className="font-medium text-blue-800 mb-3">Siguiente paso</h3>
                 <div className="space-y-2 text-sm text-blue-700">
-                  <p>Los datos están listos para usar</p>
-                  <p>Ahora puedes entrenar los modelos</p>
-                  <p>Después podrás hacer predicciones</p>
+                  <p>✅ Datos descargados correctamente</p>
+                  <p>📊 Ahora construye el dataset unificado</p>
+                  <p>🤖 Después podrás entrenar los modelos</p>
                 </div>
               </div>
             </div>
+
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+              <div className="flex">
+                <div className="text-orange-400">🔧</div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-orange-800">Construir dataset de entrenamiento</h3>
+                  <p className="text-sm text-orange-700 mt-1">
+                    Los datos se han descargado como archivos separados. Haz clic en el botón de abajo para unirlos, 
+                    limpiarlos y crear el dataset final listo para entrenar los modelos.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={handleMergeData}
+              disabled={isMerging}
+              className="w-full bg-orange-600 text-white py-4 px-6 rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-lg mb-6"
+            >
+              {isMerging ? (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                  Construyendo dataset...
+                </div>
+              ) : (
+                'Construir dataset de entrenamiento'
+              )}
+            </button>
 
             {downloadResults.downloaded_files.length > 0 && (
               <div className="mb-6">
@@ -304,6 +373,97 @@ const DownloadData = () => {
                 <h3 className="text-lg font-medium mb-4 text-orange-700">Errores durante la descarga</h3>
                 <div className="bg-orange-50 p-4 rounded-lg">
                   {downloadResults.errors.map((error, index) => (
+                    <div key={index} className="text-sm text-orange-700 mb-2">
+                      • {error}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {mergeResults && (
+          <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 className="text-xl font-semibold mb-6 text-green-700">
+              Dataset construido exitosamente
+            </h2>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h3 className="font-medium text-green-800 mb-3">Estadísticas del dataset</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-green-700">Archivos procesados:</span>
+                    <span className="font-medium">{mergeResults.processed_files_count}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-green-700">Filas totales:</span>
+                    <span className="font-medium">{mergeResults.merged_rows.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-green-700">Columnas:</span>
+                    <span className="font-medium">{mergeResults.merged_columns}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-green-700">Categorías:</span>
+                    <span className="font-medium">{mergeResults.data_categories.length}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="font-medium text-blue-800 mb-3">Rango temporal</h3>
+                <div className="space-y-2 text-sm text-blue-700">
+                  <div>
+                    <span className="font-medium">Inicio:</span>
+                    <div className="text-xs">
+                      {mergeResults.date_range.start ? new Date(mergeResults.date_range.start).toLocaleString() : 'N/A'}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="font-medium">Final:</span>
+                    <div className="text-xs">
+                      {mergeResults.date_range.end ? new Date(mergeResults.date_range.end).toLocaleString() : 'N/A'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+              <div className="flex">
+                <div className="text-green-400">✅</div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-green-800">Dataset listo</h3>
+                  <p className="text-sm text-green-700 mt-1">
+                    El dataset se ha guardado como: <code className="bg-green-100 px-1 rounded font-mono text-xs">{mergeResults.output_file}</code>
+                  </p>
+                  <p className="text-sm text-green-700 mt-2">
+                    Ahora puedes proceder a entrenar los modelos de predicción con este dataset unificado.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <h3 className="text-lg font-medium mb-4">Categorías de datos incluidas</h3>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 text-sm">
+                  {mergeResults.data_categories.map((category, index) => (
+                    <div key={index} className="text-gray-700 font-mono text-xs bg-white p-2 rounded">
+                      {category}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {mergeResults.errors && mergeResults.errors.length > 0 && (
+              <div>
+                <h3 className="text-lg font-medium mb-4 text-orange-700">Advertencias durante la construcción</h3>
+                <div className="bg-orange-50 p-4 rounded-lg">
+                  {mergeResults.errors.map((error, index) => (
                     <div key={index} className="text-sm text-orange-700 mb-2">
                       • {error}
                     </div>
