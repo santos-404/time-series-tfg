@@ -13,12 +13,18 @@ const Predictions = () => {
   const [predictionConfig, setPredictionConfig] = useState<PredictionRequest>({
     model_name: 'lstm',
     hours_ahead: 1,
-    input_hours: 24
+    input_hours: 24,
+    prediction_date: ''
   });
 
   const { predictionData, loading: predictionLoading, error: predictionError, predict } = usePredictions(API_URL);
   
-  const { data: predictedHistoricalData, loading: historyLoading } = useFetch<HistoricalData>(`${API_URL}/api/v1/historical?days=7&columns=daily_spot_market_600_España`);
+  // Build historical data URL with end_date parameter
+  const historicalUrl = predictionConfig.prediction_date 
+    ? `${API_URL}/api/v1/historical?days=7&columns=daily_spot_market_600_España&end_date=${predictionConfig.prediction_date}`
+    : `${API_URL}/api/v1/historical?days=7&columns=daily_spot_market_600_España`;
+  
+  const { data: predictedHistoricalData, loading: historyLoading, refetch: refetchHistorical } = useFetch<HistoricalData>(historicalUrl);
 
   const modelOptions = [
     { value: 'linear', label: 'Modelo Lineal', description: 'Regresión lineal simple' },
@@ -33,14 +39,29 @@ const Predictions = () => {
     'Precios regionales': ['average_demand_price_573_Baleares', 'average_demand_price_573_Canarias']
   };
 
+  // Get today's date in YYYY-MM-DD format for max date validation
+  const today = new Date().toISOString().split('T')[0];
+
   const handlePredict = async () => {
     await predict(predictionConfig);
+
+    // Refetch historical data with the selected date
+    if (refetchHistorical) {
+      refetchHistorical();
+    }
 
     // The point here is to scroll to the bottom of the screen. But the screen get bigger
     // when the plot is generated for the 1st time. Thats the reason behind waiting 200ms
     setTimeout(() => {
       window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
     }, 200);
+  };
+
+  const handleDateChange = (date: string) => {
+    setPredictionConfig(prev => ({
+      ...prev,
+      prediction_date: date
+    }));
   };
 
   return (
@@ -96,6 +117,36 @@ const Predictions = () => {
             <div>
               <h3 className="text-lg font-medium mb-4">Parámetros</h3>
               <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2 flex items-center gap-2">
+                    Fecha de predicción
+                    <div className="relative group">
+                      <div className="w-4 h-4 bg-blue-100 border-2 border-blue-800 rounded-full flex items-center justify-center cursor-help">
+                        <span className="text-blue-800 text-xs font-bold">i</span>
+                      </div>
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-blue-100 border-2 border-blue-800 text-blue-800 text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none w-64 z-10">
+                        <div className="text-center">
+                          <strong>Fecha de predicción:</strong> Selecciona la fecha desde la cual quieres hacer la predicción. El modelo utilizará datos hasta esta fecha para predecir las horas siguientes. Si no seleccionas fecha, se usará la fecha actual.
+                        </div>
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-blue-800"></div>
+                      </div>
+                    </div>
+                  </label>
+                  <input
+                    type="date"
+                    value={predictionConfig.prediction_date}
+                    max={today}
+                    onChange={(e) => handleDateChange(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Selecciona una fecha (opcional)"
+                  />
+                  <div className="text-xs text-gray-500 mt-1">
+                    {predictionConfig.prediction_date ? 
+                      `Predecir desde: ${new Date(predictionConfig.prediction_date).toLocaleDateString('es-ES')}` : 
+                      'Sin fecha seleccionada - se usará la fecha actual'
+                    }
+                  </div>
+                </div>
                 <div>
                   <label className="block text-sm font-medium mb-2 flex items-center gap-2">
                     Horas a predecir: {predictionConfig.hours_ahead}
@@ -211,42 +262,41 @@ const Predictions = () => {
           </div>
         </div>
 
-
-{predictionData && (
-  <>
-    <div className="bg-white rounded-lg shadow-lg p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold">Datos históricos y predicciones</h2>
-        <label className="flex items-center cursor-pointer">
-          <span className="mr-3 text-sm font-medium text-gray-700">
-            Mostrar históricos
-          </span>
-          <div className="relative">
-            <input
-              type="checkbox"
-              checked={showHistorical}
-              onChange={(e) => setShowHistorical(e.target.checked)}
-              className="sr-only"
-            />
-            <div className={`block w-14 h-8 rounded-full transition-colors ${
-              showHistorical ? 'bg-blue-600' : 'bg-gray-300'
-            }`}>
-              <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition transform ${
-                showHistorical ? 'translate-x-6' : ''
-              }`}></div>
+        {predictionData && (
+          <>
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold">Datos históricos y predicciones</h2>
+                <label className="flex items-center cursor-pointer">
+                  <span className="mr-3 text-sm font-medium text-gray-700">
+                    Mostrar históricos
+                  </span>
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      checked={showHistorical}
+                      onChange={(e) => setShowHistorical(e.target.checked)}
+                      className="sr-only"
+                    />
+                    <div className={`block w-14 h-8 rounded-full transition-colors ${
+                      showHistorical ? 'bg-blue-600' : 'bg-gray-300'
+                    }`}>
+                      <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition transform ${
+                        showHistorical ? 'translate-x-6' : ''
+                      }`}></div>
+                    </div>
+                  </div>
+                </label>
+              </div>
+              
+              <PredictionChart
+                predictionData={predictionData}
+                historicalData={predictedHistoricalData?.data}
+                showHistorical={showHistorical}
+              />
             </div>
-          </div>
-        </label>
-      </div>
-      
-      <PredictionChart
-        predictionData={predictionData}
-        historicalData={predictedHistoricalData?.data}
-        showHistorical={showHistorical}
-      />
-    </div>
-  </>
-)}
+          </>
+        )}
 
         {!predictionData && !predictionLoading && (
           <div className="bg-white rounded-lg shadow-lg p-12 text-center">
