@@ -8,6 +8,7 @@ import NotFound from "@/components/ui/notFound";
 import TimeSeriesDashboard from "@/screens/dashboard/timeSeriesDashboard";
 import Predictions from "@/screens/predict/predictions";
 import Training from "@/screens/train-models/training";
+import DownloadData from "./screens/download-data/downloadData";
 
 export const App: React.FC = () => (
   <Router>
@@ -20,6 +21,7 @@ export const App: React.FC = () => (
 
           <Route path="/predict" element={<Predictions />} />
           <Route path="/train-models" element={<Training />} />
+          <Route path="/download-data" element={<DownloadData />} />
 
           <Route path="/*" element={<NotFound />} />
         </Routes>

@@ -25,7 +25,7 @@ export const Navbar: React.FC = () => {
             Entrena un modelo
           </a>
           <a
-            href="/downloads"
+            href="/download-data"
             className="relative text-gray-600 font-medium hover:text-blue-600 transition-colors duration-200 after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-0 after:bg-indigo-600 hover:after:w-full hover:after:transition-all hover:after:duration-300"
           >
             Descargar datos
