@@ -1,6 +1,7 @@
 from django.core.validators import MinValueValidator, MaxValueValidator
 from rest_framework import serializers
 from .models import TimeSeriesData
+from django.utils import timezone
 
 class TimeSeriesDataSerializer(serializers.ModelSerializer):
     class Meta:
@@ -14,6 +15,12 @@ class PredictionRequestSerializer(serializers.Serializer):
     )
     hours_ahead = serializers.IntegerField(default=1, min_value=1, max_value=24)
     input_hours = serializers.IntegerField(default=24, min_value=1, max_value=168)
+    prediction_date = serializers.DateField(required=False, help_text="Date for prediction in YYYY-MM-DD format. If not provided, uses 2025-03-30.")
+
+    def validate_prediction_date(self, value):
+            if value and value > timezone.now().date():
+                raise serializers.ValidationError("La fecha de predicción no puede ser futura.")
+            return value
 
 class PredictionResponseSerializer(serializers.Serializer):
     predictions = serializers.ListField(child=serializers.FloatField())

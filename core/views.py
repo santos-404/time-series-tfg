@@ -185,8 +185,25 @@ class PredictView(APIView):
             hours_ahead = serializer.validated_data['hours_ahead']
             input_hours = serializer.validated_data['input_hours']
             
-            # Im using this date so the 28/04/25 is shown 
-            end_time = timezone.make_aware(datetime(2025, 4, 30))
+            # Get prediction date from request, default to current date if not provided
+            prediction_date = serializer.validated_data.get('prediction_date')
+            if prediction_date:
+                # If date is provided as string, parse it
+                if isinstance(prediction_date, str):
+                    try:
+                        prediction_date = datetime.strptime(prediction_date, '%Y-%m-%d').date()
+                    except ValueError:
+                        return Response({
+                            'error': 'Formato de fecha inválido. Use YYYY-MM-DD'
+                        }, status=status.HTTP_400_BAD_REQUEST)
+                
+                # Convert date to datetime with end of day time
+                end_time = timezone.make_aware(
+                    datetime.combine(prediction_date, datetime.max.time().replace(microsecond=0))
+                )
+            else:
+                end_time = timezone.make_aware(datetime(2025, 3, 30))
+            
             start_time = end_time - timedelta(hours=input_hours)
             
             recent_data = TimeSeriesData.objects.filter(
@@ -195,7 +212,7 @@ class PredictView(APIView):
             
             if recent_data.count() < input_hours:
                 return Response({
-                    'error': f'No existen suficientes datos recientes. Se necesitan{input_hours} horas, se encontraron {recent_data.count()}'
+                    'error': f'No existen suficientes datos para la fecha seleccionada. Se necesitan {input_hours} horas, se encontraron {recent_data.count()}'
                 }, status=status.HTTP_400_BAD_REQUEST)
             
             df = pd.DataFrame.from_records(recent_data.values())
@@ -217,7 +234,8 @@ class PredictView(APIView):
                 'input_data': {
                     'hours_used': input_hours,
                     'start_time': start_time,
-                    'end_time': end_time
+                    'end_time': end_time,
+                    'prediction_date': prediction_date.isoformat() if prediction_date else None
                 }
             }
             
