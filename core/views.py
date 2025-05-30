@@ -86,7 +86,7 @@ class TrainModelsView(APIView):
                 queryset = TimeSeriesData.objects.all().order_by('datetime_utc')
                 if not queryset.exists():
                     return Response({
-                        'error': 'No data found. Please upload data first.'
+                        'error': 'No se han encontrado los datos.'
                     }, status=status.HTTP_400_BAD_REQUEST)
                 
                 train_df, val_df, test_df, date_time = predictor.load_data_from_queryset(queryset)
@@ -113,7 +113,7 @@ class TrainModelsView(APIView):
                 pickle.dump(norm_params, f)
             
             response_data = {
-                'message': 'Models trained successfully',
+                'message': 'Modelos entrenados correctamente',
                 'performance': performance,
                 'models_saved': list(predictor.models.keys()),
                 'database_records': records_created
@@ -130,7 +130,7 @@ class TrainModelsView(APIView):
             
         except Exception as e:
             return Response({
-                'error': f'Training failed: {str(e)}'
+                'error': f'El entrenamiento ha fallado: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class PredictView(APIView):
@@ -177,7 +177,7 @@ class PredictView(APIView):
         
         if not self.predictor or not self.predictor.models:
             return Response({
-                'error': 'Models not loaded. Please train models first.'
+                'error': 'Modelos no cargados. Por favor entrena los modelos primero.'
             }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         
         try:
@@ -195,7 +195,7 @@ class PredictView(APIView):
             
             if recent_data.count() < input_hours:
                 return Response({
-                    'error': f'Not enough recent data. Need {input_hours} hours, got {recent_data.count()}'
+                    'error': f'No existen suficientes datos recientes. Se necesitan{input_hours} horas, se encontraron {recent_data.count()}'
                 }, status=status.HTTP_400_BAD_REQUEST)
             
             df = pd.DataFrame.from_records(recent_data.values())
@@ -225,7 +225,7 @@ class PredictView(APIView):
             
         except Exception as e:
             return Response({
-                'error': f'Prediction failed: {str(e)}'
+                'error': f'Fallo en la predicción: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class HistoricalDataView(APIView):
@@ -272,7 +272,7 @@ class HistoricalDataView(APIView):
             
             if not queryset.exists():
                 return Response({
-                    'error': 'No data found for the specified time range'
+                    'error': 'No se han encontrado datos para el rango de tiempo especificado'
                 }, status=status.HTTP_404_NOT_FOUND)
             
             # Convert to format suitable for frontend charts
@@ -296,7 +296,7 @@ class HistoricalDataView(APIView):
             
         except Exception as e:
             return Response({
-                'error': f'Failed to fetch data: {str(e)}'
+                'error': f'Fallo al obtener los datos: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -514,7 +514,7 @@ class MergeDataView(APIView):
             
             if not os.path.exists(data_dir):
                 return Response({
-                    'error': f'Data directory not found: {data_dir}. Please download data first.'
+                    'error': f'Directorio de datos no encontrado: {data_dir}. Descarga los datos primero.'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
             data = defaultdict(list)
@@ -571,7 +571,7 @@ class MergeDataView(APIView):
 
             if not data:
                 return Response({
-                    'error': 'No valid data files found to merge',
+                    'error': 'No se han encontrado datos validos para construir el dataset de entrenamiento',
                     'processed_files': processed_files,
                     'errors': errors
                 }, status=status.HTTP_400_BAD_REQUEST)
@@ -602,7 +602,7 @@ class MergeDataView(APIView):
             merged_df.to_csv(output_file, index=False)
 
             return Response({
-                'message': 'Data merged successfully',
+                'message': 'Dataset construido con éxito',
                 'output_file': output_file,
                 'processed_files_count': len(processed_files),
                 'data_categories': list(data.keys()),
