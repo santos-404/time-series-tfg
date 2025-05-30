@@ -1,12 +1,13 @@
 from django.core.validators import MinValueValidator, MaxValueValidator
 from rest_framework import serializers
 from .models import TimeSeriesData
-from django.utils import timezone
+from datetime import date
 
 class TimeSeriesDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = TimeSeriesData
         fields = '__all__'
+
 
 class PredictionRequestSerializer(serializers.Serializer):
     model_name = serializers.ChoiceField(
@@ -17,10 +18,13 @@ class PredictionRequestSerializer(serializers.Serializer):
     input_hours = serializers.IntegerField(default=24, min_value=1, max_value=168)
     prediction_date = serializers.DateField(required=False, help_text="Date for prediction in YYYY-MM-DD format. If not provided, uses 2025-03-30.")
 
-    def validate_prediction_date(self, value):
-            if value and value > timezone.now().date():
-                raise serializers.ValidationError("La fecha de predicción no puede ser futura.")
-            return value
+    def validate_predicition_date(self, value):
+        if value and value > date.today():
+            raise serializers.ValidationError("La fecha final no puede ser futura.")
+        if value and value < date(2020, 1, 1):
+            raise serializers.ValidationError("La fecha final no puede ser anterior a 2020-01-01.")
+        return value
+
 
 class PredictionResponseSerializer(serializers.Serializer):
     predictions = serializers.ListField(child=serializers.FloatField())
@@ -28,6 +32,25 @@ class PredictionResponseSerializer(serializers.Serializer):
     model_used = serializers.CharField()
     confidence_interval = serializers.DictField(required=False)
     input_data = serializers.DictField()
+
+
+class HistoricalDataRequestSerializer(serializers.Serializer):
+    days = serializers.IntegerField(default=7, min_value=1, help_text="Number of days to retrieve data for")
+    end_date = serializers.DateField(required=False, help_text="End date for data retrieval in YYYY-MM-DD format. If not provided, uses 2025-03-30.")
+    columns = serializers.CharField(required=False, help_text="Comma-separated list of columns to retrieve")
+    
+    def validate_end_date(self, value):
+        if value and value > date.today():
+            raise serializers.ValidationError("La fecha final no puede ser futura.")
+        if value and value < date(2020, 1, 1):
+            raise serializers.ValidationError("La fecha final no puede ser anterior a 2020-01-01.")
+        return value
+    
+    def validate_columns(self, value):
+        if value:
+            columns = [col.strip() for col in value.split(',') if col.strip()]
+            return columns
+        return []
 
 
 class DataDownloadRequestSerializer(serializers.Serializer):
@@ -43,8 +66,8 @@ class DataDownloadRequestSerializer(serializers.Serializer):
     
     years_back = serializers.IntegerField(
         default=5,
-        validators=[MinValueValidator(1), MaxValueValidator(20)],
-        help_text="Number of years back to download data (1-20 years)"
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        help_text="Number of years back to download data (1-5 years)"
     )
     
     def validate_esios_token(self, value):

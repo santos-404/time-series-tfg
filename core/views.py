@@ -15,6 +15,7 @@ from .utils.time_series_utils import TimeSeriesPredictor
 from .serializers import (
     PredictionRequestSerializer, 
     DataDownloadRequestSerializer,
+    HistoricalDataRequestSerializer,
     # PredictionResponseSerializer,
     # TimeSeriesDataSerializer
 )
@@ -252,11 +253,17 @@ class HistoricalDataView(APIView):
     """
     def get(self, request):
         try:
-            days = int(request.query_params.get('days', 7))
-            columns = request.query_params.get('columns', '').split(',')
+            serializer = HistoricalDataRequestSerializer(data=request.query_params)
+            
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+            days = serializer.validated_data['days']
+            columns = serializer.validated_data.get('columns', [])
+            end_date = serializer.validated_data.get('end_date')
             
             # Default columns if none specified
-            if not columns or columns == ['']:
+            if not columns:
                 columns = [
                     'daily_spot_market_600_España',
                     'daily_spot_market_600_Portugal',
@@ -265,7 +272,6 @@ class HistoricalDataView(APIView):
                     'scheduled_demand_358', 
                     'scheduled_demand_372',
                     'peninsula_forecast_460',
-
                     'hydraulic_71',
                     'hydraulic_36',
                     'hydraulic_1',
@@ -281,7 +287,14 @@ class HistoricalDataView(APIView):
                     'average_demand_price_573_Melilla'
                 ]
             
-            end_time = timezone.make_aware(datetime(2025, 4, 30))
+            if end_date:
+                # Convert to datetime with end of day time
+                end_time = timezone.make_aware(
+                    datetime.combine(end_date, datetime.max.time().replace(microsecond=0))
+                )
+            else:
+                end_time = timezone.make_aware(datetime(2025, 3, 30))
+            
             start_time = end_time - timedelta(days=days)
             
             queryset = TimeSeriesData.objects.filter(
@@ -309,6 +322,11 @@ class HistoricalDataView(APIView):
                 'time_range': {
                     'start': start_time,
                     'end': end_time
+                },
+                'parameters': {
+                    'days': days,
+                    'end_date': end_date.isoformat() if end_date else None,
+                    'columns_count': len(columns)
                 }
             })
             
