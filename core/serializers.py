@@ -27,7 +27,6 @@ class DataDownloadRequestSerializer(serializers.Serializer):
     esios_token = serializers.CharField(
         max_length=500,
         help_text="ESIOS API token for authentication",
-        style={'input_type': 'password'}  # Hide token in browsable API
     )
     
     download_indicators = serializers.BooleanField(

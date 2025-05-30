@@ -300,16 +300,16 @@ class HistoricalDataView(APIView):
                 'error': f'Failed to fetch data: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
 class DownloadDataView(APIView):
     """
     Endpoint to download data from ESIOS API
     """
-    
+
     def __init__(self):
         super().__init__()
         self.BASE_ENDPOINT = 'https://api.esios.ree.es/indicators'
         
-        # Data configuration - same as your original script
         self.DATA_TO_DOWNLOAD = {
             "energy_generation/hydraulic": [1, 36, 71],
             "energy_generation/nuclear": [4, 39, 74],
@@ -320,9 +320,9 @@ class DownloadDataView(APIView):
             "price/daily_spot_market": [600],
             "price/average_demand_price": [573]
         }
-    
+
     def _get_headers(self, token):
-        """Generate request headers with the provided token"""
+        """Get API headers with the provided token"""
         return {
             'Accept': 'application/json; application/vnd.esios-api-v2+json',
             'Content-Type': 'application/json',
@@ -333,31 +333,35 @@ class DownloadDataView(APIView):
             'Cache-Control': 'no-cache',
             'Pragma': 'no-cache'
         }
-    
-    def _get_indicators(self, token):
-        """Get all available indicators from the API"""
+
+    def _get_data_dir(self):
+        """Get the data directory path (time_series_tfg/data/)"""
+        project_root = getattr(settings, 'BASE_DIR', os.getcwd())
+        return os.path.join(project_root, "data")
+
+    def _get_indicators(self, headers):
+        """Get all available indicators from the API."""
         try:
-            headers = self._get_headers(token)
             response = requests.get(self.BASE_ENDPOINT, headers=headers)
             response.raise_for_status()
-            
-            data = response.json()
+            response_data = response.json()
+
             return (pd
-                    .json_normalize(data=data['indicators'], errors='ignore')
+                    .json_normalize(data=response_data['indicators'], errors='ignore')
                     .assign(description=lambda df_: df_.apply(
                         lambda df__: html.unescape(df__['description']
-                                                  .replace('<p>', '')
-                                                  .replace('</p>', '')
-                                                  .replace('<b>', '')
-                                                  .replace('</b>', ''))
+                                                   .replace('</p>', '')
+                                                   .replace('<p>', '')
+                                                   .replace('<b>', '')
+                                                   .replace('</b>', ''))
                         if isinstance(df__['description'], str) else df__['description'],
                         axis=1)
                     ))
-        except requests.RequestException as e:
+        except requests.exceptions.RequestException as e:
             raise Exception(f"Failed to fetch indicators: {str(e)}")
-    
-    def _get_data_by_id_month(self, indicator_id, year, month, token):
-        """Get data for a specific indicator by ID for a given month"""
+
+    def _get_data_by_id_month(self, indicator_id, year, month, headers):
+        """Get data for a specific indicator by ID for a given month."""
         start_date = datetime(year, month, 1)
         
         # If it's the current year and month, use today as the end date
@@ -378,56 +382,56 @@ class DownloadDataView(APIView):
                    f"end_date={end_date_str}T23:59&"
                    f"time_trunc=five_minutes")
         
-        headers = self._get_headers(token)
-        response = requests.get(endpoint, headers=headers)
-        response.raise_for_status()
-        
-        data = response.json()
-        return pd.json_normalize(data=data['indicator'], record_path='values', errors='ignore')
-    
+        try:
+            response = requests.get(endpoint, headers=headers)
+            response.raise_for_status()
+            response_data = response.json()
+            return pd.json_normalize(data=response_data['indicator'], 
+                                   record_path='values', errors='ignore')
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"Failed to fetch data for indicator {indicator_id}: {str(e)}")
+
     def _save_data(self, data, file_path):
-        """Save DataFrame to CSV file"""
+        """Save DataFrame to CSV file."""
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         data.to_csv(file_path, index=False)
-    
+
     def post(self, request):
-        """Download data from ESIOS API"""
-        serializer = DataDownloadRequestSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-        token = serializer.validated_data['esios_token']
-        download_indicators = serializer.validated_data.get('download_indicators', True)
-        years_back = serializer.validated_data.get('years_back', 5)
-        
         try:
-            # Create temporary directory for data
-            temp_dir = tempfile.mkdtemp()
-            data_dir = os.path.join(temp_dir, "data")
+            serializer = DataDownloadRequestSerializer(data=request.data)
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+            token = serializer.validated_data['esios_token']
+            download_indicators = serializer.validated_data.get('download_indicators', True)
+            years_back = serializer.validated_data.get('years_back', 5)
+            
+            headers = self._get_headers(token)
+            data_dir = self._get_data_dir()
+            
             os.makedirs(data_dir, exist_ok=True)
             
             results = {
                 'message': 'Data download completed',
+                'data_directory': data_dir,
                 'downloaded_files': [],
                 'errors': []
             }
-            
-            # Download indicators if requested
+
             if download_indicators:
                 try:
-                    indicators = self._get_indicators(token)
+                    indicators = self._get_indicators(headers)
                     indicators_path = os.path.join(data_dir, "indicators.csv")
                     self._save_data(indicators, indicators_path)
                     results['downloaded_files'].append('indicators.csv')
                 except Exception as e:
                     results['errors'].append(f"Failed to download indicators: {str(e)}")
-            
-            # Calculate date range
-            five_years_ago = datetime.today() - timedelta(days=years_back * 365)
-            start_year = five_years_ago.year
-            current_year = datetime.today().year
-            
-            # Download data for each category and indicator
+
+            end_date = datetime.today()
+            start_date = end_date - timedelta(days=years_back * 365)
+            start_year = start_date.year
+            current_year = end_date.year
+
             for category, indicator_ids in self.DATA_TO_DOWNLOAD.items():
                 category_dir = os.path.join(data_dir, category)
                 os.makedirs(category_dir, exist_ok=True)
@@ -444,18 +448,17 @@ class DownloadDataView(APIView):
                                 
                                 try:
                                     monthly_data = self._get_data_by_id_month(
-                                        indicator_id, year, month, token
-                                    )
+                                        indicator_id, year, month, headers)
                                     
                                     if not monthly_data.empty:
                                         yearly_data.append(monthly_data)
                                         
                                 except Exception as e:
                                     results['errors'].append(
-                                        f"Error downloading {indicator_id} for {year}-{month:02d}: {str(e)}"
-                                    )
+                                        f"Error downloading indicator {indicator_id} "
+                                        f"for {year}-{month:02d}: {str(e)}")
                             
-                            # Combine monthly data for the year
+                            # Combine and save yearly data
                             if yearly_data:
                                 combined_yearly_data = pd.concat(yearly_data, ignore_index=True)
                                 file_name = f"{indicator_id}_{year}.csv"
@@ -465,21 +468,18 @@ class DownloadDataView(APIView):
                                 
                     except Exception as e:
                         results['errors'].append(
-                            f"Failed to download indicator {indicator_id} in {category}: {str(e)}"
-                        )
-            
-            # Store data directory path in session or cache for later use
-            request.session['temp_data_dir'] = temp_dir
-            
-            return Response(results, status=status.HTTP_200_OK)
-            
+                            f"Failed to download indicator {indicator_id} "
+                            f"in category {category}: {str(e)}")
+
+            # Determine response status
+            if results['errors'] and not results['downloaded_files']:
+                return Response(results, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            elif results['errors']:
+                return Response(results, status=status.HTTP_207_MULTI_STATUS)
+            else:
+                return Response(results, status=status.HTTP_200_OK)
+
         except Exception as e:
-            # Cleanup temp directory on error
-            if 'temp_dir' in locals():
-                shutil.rmtree(temp_dir, ignore_errors=True)
-            
             return Response({
                 'error': f'Download failed: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
