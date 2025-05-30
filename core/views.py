@@ -4,12 +4,11 @@ from rest_framework import status
 from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta, datetime
+from collections import defaultdict
 import pandas as pd
 import requests
 import os
 import html
-import tempfile
-import shutil
 
 from .models import TimeSeriesData
 from .utils.time_series_utils import TimeSeriesPredictor
@@ -483,3 +482,141 @@ class DownloadDataView(APIView):
             return Response({
                 'error': f'Download failed: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class MergeDataView(APIView):
+    """
+    Endpoint to merge downloaded data files
+    """
+    
+    def __init__(self):
+        super().__init__()
+        self.SELECTED_GEO = {"Península", "España", "Portugal", "Baleares", "Canarias", "Ceuta", "Melilla"}
+
+    def _get_data_dir(self):
+        """Get the data directory path (project_root/data/)"""
+        project_root = getattr(settings, 'BASE_DIR', os.getcwd())
+        return os.path.join(project_root, "data")
+
+    def _get_data_id(self, path):
+        """Extract data ID from file path"""
+        parts = path.replace("\\", "/").split("/")
+        if len(parts) < 2:
+            return None
+        category = parts[-2]
+        filename = os.path.splitext(parts[-1])[0]
+        sensor_id = filename.split("_")[0]
+        return f"{category}_{sensor_id}"
+
+    def post(self, request):
+        try:
+            data_dir = self._get_data_dir()
+            
+            if not os.path.exists(data_dir):
+                return Response({
+                    'error': f'Data directory not found: {data_dir}. Please download data first.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            data = defaultdict(list)
+            processed_files = []
+            errors = []
+
+            for root, _, files in os.walk(data_dir):
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    
+                    if not file.endswith(".csv") or os.path.dirname(file_path) == data_dir:
+                        continue
+                    
+                    data_id = self._get_data_id(file_path)
+                    if not data_id:
+                        continue
+                    
+                    try:
+                        df = pd.read_csv(file_path)
+                        df['datetime_utc'] = pd.to_datetime(df['datetime_utc'], utc=True)
+                        
+                        # Filter to keep only hourly data (minute == 0). The reason behind
+                        # this is that not every feature got the same precision. So we only
+                        # keep the hourly data.
+                        df = df[df['datetime_utc'].dt.minute == 0]
+                        
+                        if 'geo_name' in df.columns:
+                            df = df[df['geo_name'].isin(self.SELECTED_GEO)]
+                        
+                            unique_geos = df['geo_name'].nunique()
+                            if unique_geos > 1:
+                                pivot_df = df.pivot_table(
+                                    index="datetime_utc",
+                                    columns="geo_name",
+                                    values="value",
+                                    aggfunc="first"
+                                )
+                                pivot_df = pivot_df.rename(columns=lambda g: f"{data_id}_{g}")
+                                pivot_df = pivot_df.reset_index()
+                                data[data_id].append(pivot_df)
+                            else:
+                                df = df[['datetime_utc', 'value']]
+                                data[data_id].append(df)
+                        else:
+                            if 'value' in df.columns:
+                                df = df[['datetime_utc', 'value']]
+                                data[data_id].append(df)
+                        
+                        processed_files.append(file_path)
+                        
+                    except Exception as e:
+                        error_msg = f"Error reading {file_path}: {str(e)}"
+                        errors.append(error_msg)
+
+            if not data:
+                return Response({
+                    'error': 'No valid data files found to merge',
+                    'processed_files': processed_files,
+                    'errors': errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            all_dfs = []
+            for data_id, dfs in data.items():
+                if dfs:
+                    combined = pd.concat(dfs, ignore_index=True)
+                    combined = combined.sort_values("datetime_utc").drop_duplicates("datetime_utc")
+                    combined.rename(columns={'value': data_id}, inplace=True)
+                    all_dfs.append(combined)
+
+            merged_df = None
+            for df in all_dfs:
+                if merged_df is None:
+                    merged_df = df
+                else:
+                    merged_df = pd.merge(merged_df, df, on="datetime_utc", how="outer")
+
+            if merged_df is None or merged_df.empty:
+                return Response({
+                    'error': 'Fallo al unir los datos',
+                    'errors': errors
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            merged_df = merged_df.sort_values("datetime_utc")
+            output_file = os.path.join(data_dir, "merged_dataset.csv")
+            merged_df.to_csv(output_file, index=False)
+
+            return Response({
+                'message': 'Data merged successfully',
+                'output_file': output_file,
+                'processed_files_count': len(processed_files),
+                'data_categories': list(data.keys()),
+                'merged_rows': len(merged_df),
+                'merged_columns': len(merged_df.columns),
+                'date_range': {
+                    'start': merged_df['datetime_utc'].min().isoformat() if not merged_df.empty else None,
+                    'end': merged_df['datetime_utc'].max().isoformat() if not merged_df.empty else None
+                },
+                'errors': errors if errors else None
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({
+                'error': f'Hubo un error al unir los datos: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+

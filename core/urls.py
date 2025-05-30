@@ -3,7 +3,8 @@ from .views import (
     TrainModelsView, 
     PredictView, 
     HistoricalDataView, 
-    DownloadDataView
+    DownloadDataView,
+    MergeDataView,
 )
 
 urlpatterns = [
@@ -12,5 +13,6 @@ urlpatterns = [
     path('historical/', HistoricalDataView.as_view(), name='historical-data'),
 
     path('data/download/', DownloadDataView.as_view(), name='download-data'),
+    path('data/merge/', MergeDataView.as_view(), name='merge-data'),
 ]
 
