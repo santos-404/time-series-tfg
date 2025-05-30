@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { useFetch } from '@/hooks/useFetch';
 import OverviewSection from '@/components/dashboard/OverviewSection';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
-import DetailedSection from '@/components/dashboard/DetailedSection';
 import Loading from '@/components/ui/loading';
 import Error from '@/components/ui/error';
 import type { HistoricalData } from '@/types/HistoricalData';
@@ -11,7 +10,6 @@ import type { HistoricalData } from '@/types/HistoricalData';
 const API_URL = 'http://127.0.0.1:7777'
 
 const TimeSeriesDashboard = () => {
-  const [selectedDay, setSelectedDay] = useState(null);
   // These are the default values, They might be changed. And I think is a good idea to set groups of features 
   const [selectedMetrics, setSelectedMetrics] = useState(['hydraulic_1', 'solar_14', 'wind_12', 'nuclear_4']);
   
