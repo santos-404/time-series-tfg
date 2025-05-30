@@ -1,47 +1,38 @@
-# TFG – Time Series Pattern Search
+# Time Series Forecasting on the Spanish Electricity Market
 
-## Private Repository for TFG – Time Series Pattern Search with Evolutionary Algorithms & Machine Learning
+This project is the Final Year Thesis (TFG) of **Javier Santos**, focused on building and deploying neural network models to make predictions on time series data from the Spanish electrical market.
 
-This repository contains my Final Year Project (TFG) focused on pattern search in time series using evolutionary algorithms and machine learning techniques. The project explores advanced methods for identifying meaningful patterns in sequential data, optimizing search processes, and improving predictive capabilities.
+Originally developed as a set of Python scripts and Jupyter notebooks for data preprocessing and modeling, the project has evolved into a full-stack web application. It includes:
 
-Additionally, I developed a web application to visualize and interact with the results, providing an intuitive interface for analysis and experimentation.
+- **A Django-based REST API** (`TensorFlow`-powered) that serves trained neural network models and facilitates data retrieval.
+- **A React frontend with TypeScript and Tailwind CSS**, providing a clean, modern interface to:
+  - Visualize time series plots
+  - Train neural models
+  - Make predictions from real data
+- **Reusable scripts and notebooks** in the `scripts/` directory, suitable for offline experimentation and local analysis.
+
+
+![App Screenshot](public/app_screenshot.png)
 
 The web app is in Spanish, as is the language of the final report.
 
-## Data
+---
 
-Check out the `data/` directory for details on the variables used.
+## Setup Instructions
 
-To access and work with the data, you'll need to follow these steps:
+To get the application running locally (backend and frontend), please refer to [SETUP.md](SETUP.md).
 
-### Prerequisites
+---
 
-1. You'll need an ESIOS token as described in `data/README.md`
-2. Add your token to the `.env` file (use `.env.example` as a template)
-3. Install dependencies:
-   ```bash
-   # Create and activate a virtual environment (recommended)
-   python -m venv venv
-   source venv/bin/activate  # On Windows, use venv\Scripts\activate
-   
-   # Install dependencies
-   pip install -r requirements.txt
-   ```
+## License
 
-## Usage
+This project is licensed under the **MIT License**.  
 
-Once set up, you can:
+> The project **does not accept contributions** as it is a personal academic work.
 
-1. Run the data download script:
-   ```bash
-   python download_data.py
-   ```
 
-2. Generate visualizations from the downloaded data
+---
 
-## Minimal Setup
+## Thanks
 
-If you only need to download the data without visualization capabilities, you can install just the core dependencies:
-```bash
-pip install pandas requests dotenv
-```
+Thank you for reading, and I hope you enjoy this project!
