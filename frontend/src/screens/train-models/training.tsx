@@ -67,7 +67,7 @@ const TrainModels = () => {
           </h1>
           <p className="mt-2 text-gray-600">
             Entrena todos los modelos de machine learning para predicciones del mercado eléctrico con los datos descargados.
-            <a href="/predictions" className='text-blue-800'> (Pulsa aquí si todavía no has descargado los datos)</a>
+            <a href="/download-data" className='text-blue-800'> (Pulsa aquí si todavía no has descargado los datos)</a>
           </p>
         </div>
 

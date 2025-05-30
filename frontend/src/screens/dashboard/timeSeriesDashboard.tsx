@@ -3,7 +3,7 @@ import { useFetch } from '@/hooks/useFetch';
 import OverviewSection from '@/components/dashboard/OverviewSection';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import Loading from '@/components/ui/loading';
-import Error from '@/components/ui/error';
+import WelcomeMessage from '@/components/ui/welcomeMessage';
 import type { HistoricalData } from '@/types/HistoricalData';
 
 // I obviously know that is not a good practice. But this is not aim to be deployed
@@ -27,7 +27,7 @@ const TimeSeriesDashboard = () => {
   }, [historicalData]);
 
   if (loading) return <Loading />;
-  if (error) return <Error error={error} />;
+  if (error || !historicalData?.data) return <WelcomeMessage />;
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">

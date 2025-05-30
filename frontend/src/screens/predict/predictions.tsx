@@ -53,7 +53,7 @@ const Predictions = () => {
           </h1>
           <p className="mt-2 text-gray-600">
             Realiza predicciones con modelos ya entrenados. 
-            <a href="/train-models" className='text-blue-800'> (Pulsa aquí si todavía no has entrenado los modelos)</a>
+            <a href="/train-models" className='text-blue-800'> (Pulsa aquí si quieres entrenar los modelos con tus datos descargados)</a>
           </p>
         </div>
 
