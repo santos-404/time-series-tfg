@@ -5,3 +5,9 @@ export interface DownloadResponse {
   errors: string[];
 }
 
+export interface DownloadResultsProps {
+  downloadResults: DownloadResponse;
+  isMerging: boolean;
+  onMergeData: () => void;
+}
+
