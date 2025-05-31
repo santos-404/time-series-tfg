@@ -1,9 +1,9 @@
 import type { PredictionRequest } from '@/types/PredictionRequest';
-import type { PredictionResponse } from '@/types/PredictionResponse';
+import type { PredictionData } from '@/types/PredictionData';
 import { useState, useCallback } from 'react';
 
 interface UsePredictionsReturn {
-  predictionData: PredictionResponse | null;
+  predictionData: PredictionData | null;
   loading: boolean;
   error: string | null;
   predict: (config: PredictionRequest) => Promise<void>;
@@ -12,7 +12,7 @@ interface UsePredictionsReturn {
 }
 
 export const usePredictions = (baseUrl: string): UsePredictionsReturn => {
-  const [predictionData, setPredictionData] = useState<PredictionResponse | null>(null);
+  const [predictionData, setPredictionData] = useState<PredictionData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
