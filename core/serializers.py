@@ -18,7 +18,7 @@ class PredictionRequestSerializer(serializers.Serializer):
     input_hours = serializers.IntegerField(default=24, min_value=1, max_value=168)
     prediction_date = serializers.DateField(required=False, help_text="Date for prediction in YYYY-MM-DD format. If not provided, uses 2025-03-30.")
 
-    def validate_predicition_date(self, value):
+    def validate_prediction_date(self, value):
         if value and value > date.today():
             raise serializers.ValidationError("La fecha final no puede ser futura.")
         if value and value < date(2020, 1, 1):
