@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: docker/images/Dockerfile.backend
+    ports:
+      - "7777:7777"
+    volumes:
+      - .:/app
+      - ./media:/app/media  # Persist model files
+    environment:
+      - DJANGO_SETTINGS_MODULE=time_series_tfg.settings
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/images/Dockerfile.frontend
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules  # Prevent overwriting node_modules
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+volumes:
+  sqlite_data:
+
+networks:
+  app-network:
+    driver: bridge
