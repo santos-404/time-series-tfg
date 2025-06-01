@@ -61,7 +61,7 @@ const MergeResults = ({ mergeResults }: MergeResultsProps) => (
             El dataset se ha guardado como: <code className="bg-green-100 px-1 rounded font-mono text-xs">{mergeResults.output_file}</code>
           </p>
           <p className="text-sm text-green-700 mt-2">
-            Ahora puedes proceder a entrenar los modelos de predicción con este dataset unificado.
+            Ahora puedes proceder a entrenar los modelos de predicción con este dataset unificado. <a href="/train-models" className="text-blue-600">Pulsa aquí para ir a la página de entrenamiento.</a>
           </p>
         </div>
       </div>
