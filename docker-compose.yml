@@ -9,7 +9,8 @@ services:
       - "7777:7777"
     volumes:
       - .:/app
-      - ./media:/app/media  # Persist model files
+      - ./media:/app/media
+      - db_data:/app/backend  # This will persist the entire backend directory
     environment:
       - DJANGO_SETTINGS_MODULE=time_series_tfg.settings
     networks:
@@ -29,9 +30,9 @@ services:
     networks:
       - app-network
 
-volumes:
-  sqlite_data:
-
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  db_data:
