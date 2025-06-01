@@ -14,7 +14,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({ value, onChange, maxDate })
         Fecha de predicción
         <InfoTooltip
           title="Fecha de predicción"
-          content="Selecciona la fecha desde la cual quieres hacer la predicción. El modelo utilizará datos hasta esta fecha para predecir las horas siguientes. Si no seleccionas fecha, se usará la fecha actual."
+          content="Selecciona la fecha desde la cual quieres hacer la predicción. El modelo utilizará datos hasta esta fecha para predecir las horas siguientes. Si no seleccionas fecha, se usará 2025-03-30."
         />
       </label>
       <input
