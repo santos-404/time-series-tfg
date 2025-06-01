@@ -22,6 +22,7 @@ const DownloadData = () => {
   const [esiosToken, setEsiosToken] = useState('');
   const [downloadIndicators, setDownloadIndicators] = useState(false);
   const [yearsBack, setYearsBack] = useState(5);
+  const [skipToMerge, setSkipToMerge] = useState(false);
 
   const handleDownloadData = async () => {
     if (!esiosToken.trim()) {
@@ -100,11 +101,54 @@ const DownloadData = () => {
     }
   };
 
+  const handleSkipToMerge = () => {
+    setSkipToMerge(true);
+    setError(null);
+    setDownloadResults(null);
+    setMergeResults(null);
+    
+    const mockDownloadResult: DownloadResponse = {
+      message: "Datos ya descargados",
+      data_directory: "Los datos deben encontrarse en /data",
+      downloaded_files: [],
+      errors: []
+    };
+    
+    setDownloadResults(mockDownloadResult);
+    
+    // Scroll to merge section
+    setTimeout(() => {
+      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+    }, 200);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         <Header />
         <ESIOSInfo />
+        
+        {/* Skip to Merge Option */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6 border border-blue-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                ¿Ya tienes los datos descargados?
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Si ya has descargado los datos previamente, puedes ir directamente al proceso de construcción del dataset.
+              </p>
+            </div>
+            <button
+              onClick={handleSkipToMerge}
+              disabled={isDownloading || isMerging}
+              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 whitespace-nowrap ml-4"
+            >
+              Ir a Construir Dataset
+            </button>
+          </div>
+        </div>
+
         <DownloadConfig
           esiosToken={esiosToken}
           setEsiosToken={setEsiosToken}
