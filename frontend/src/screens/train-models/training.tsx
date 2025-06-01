@@ -156,7 +156,7 @@ const TrainModels = () => {
 
         {trainingResults && (
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-6 text-green-700">
+            <h2 className="text-xl font-semibold text-green-700 mb-6">
               ✅ Entrenamiento completado exitosamente
             </h2>
 
@@ -197,6 +197,10 @@ const TrainModels = () => {
                   ))}
                 </div>
               </div>
+            </div>
+
+            <div className='mb-6'>
+              <a href="/predict" className="text-blue-600">Pulsa aquí para ir a la página de predicciones.</a>
             </div>
 
             <div>
