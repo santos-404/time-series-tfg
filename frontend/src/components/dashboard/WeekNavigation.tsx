@@ -121,8 +121,7 @@ const WeekNavigation = ({
       <div className="mt-3 pt-3 border-t border-gray-100">
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-500">
-            Mostrando datos desde {weekRange.start.toLocaleDateString('es-ES')} 
-            hasta {weekRange.end.toLocaleDateString('es-ES')}
+            Mostrando datos desde {weekRange.start.toLocaleDateString('es-ES')} hasta {weekRange.end.toLocaleDateString('es-ES')}
             {daysToShow === 7 && ' (1 semana)'}
             {daysToShow === 14 && ' (2 semanas)'}
             {daysToShow === 30 && ' (1 mes)'}
