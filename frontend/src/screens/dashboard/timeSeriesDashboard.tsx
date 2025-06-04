@@ -19,7 +19,9 @@ const API_URL = 'http://127.0.0.1:7777'
 
 const TimeSeriesDashboard = () => {
   // These are the default values, They might be changed. And I think is a good idea to set groups of features 
-  const [selectedMetrics, setSelectedMetrics] = useState(['hydraulic_1', 'solar_14', 'wind_12', 'nuclear_4']);
+  const [selectedMetrics, setSelectedMetrics] = useState(['average_demand_price_573_Canarias', 'average_demand_price_573_Ceuta', 
+                                             'average_demand_price_573_Melilla', 'average_demand_price_573_Baleares', 
+                                            'daily_spot_market_600_España', 'daily_spot_market_600_Portugal']);
   
   const [currentDate, setCurrentDate] = useState(new Date(2025, 3, 30)); 
   const [daysToShow, setDaysToShow] = useState(7); 
