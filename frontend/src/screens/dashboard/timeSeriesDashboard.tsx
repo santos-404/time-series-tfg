@@ -96,7 +96,7 @@ const TimeSeriesDashboard = () => {
         <div className="space-y-6 mt-8">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <div className="lg:col-span-3">
-              <GenerationLineChart data={processedData}/> 
+              <HourlyGenerationTrends data={processedData}/> 
             </div>
             <div className="lg:col-span-1">
               <EnergyMixPieChart data={processedData}/>
@@ -114,7 +114,7 @@ const TimeSeriesDashboard = () => {
 
           <div className="grid grid-cols-1 gap-6">
             <div>
-              <HourlyGenerationTrends data={processedData}/> 
+              <GenerationLineChart data={processedData}/> 
             </div>
           </div>
 

@@ -56,7 +56,7 @@ const HourlyGenerationTrends = ({ data }) => {
   if (!processedData.length) {
     return (
       <div className="bg-white p-6 rounded-lg shadow-lg">
-        <h3 className="text-xl font-semibold mb-4">Tendencias horarias de generación de energía</h3>
+        <h3 className="text-xl font-semibold mb-4">Tendencias horarias acumuladas de generación de energía</h3>
         <div className="flex items-center justify-center h-96">
           <p className="text-gray-500">No hay datos disponibles</p>
         </div>
@@ -66,7 +66,7 @@ const HourlyGenerationTrends = ({ data }) => {
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg h-full">
-      <h3 className="text-xl font-semibold mb-4">Tendencias horarias de generación de energía</h3>
+      <h3 className="text-xl font-semibold mb-4">Tendencias horarias acumuladas de generación de energía</h3>
       <ResponsiveContainer width="100%" height={400}>
         <ComposedChart data={processedData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" />
