@@ -27,8 +27,8 @@ const DailyAveragesBarChart = ({ data }) => {
     const count = data.length;
     return [
       { source: 'Solar', average: averages.solar / count, color: COLORS.solar },
-      { source: 'Wind', average: averages.wind / count, color: COLORS.wind },
-      { source: 'Hydraulic', average: averages.hydraulic / count, color: COLORS.hydraulic },
+      { source: 'Eólica', average: averages.wind / count, color: COLORS.wind },
+      { source: 'Hidráulica', average: averages.hydraulic / count, color: COLORS.hydraulic },
       { source: 'Nuclear', average: averages.nuclear / count, color: COLORS.nuclear }
     ].filter(item => item.average > 0);
   }, [data]);
@@ -52,7 +52,7 @@ const DailyAveragesBarChart = ({ data }) => {
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="source" />
           <YAxis label={{ value: 'MW', angle: -90, position: 'insideLeft' }} />
-          <Tooltip formatter={(value) => [`${value.toFixed(0)} MW`, 'Average Generation']} />
+          <Tooltip formatter={(value) => [`${value.toFixed(0)} MW`, 'Generación media']} />
           <Bar dataKey="average" fill="#8884d8">
             {dailyAverages.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />

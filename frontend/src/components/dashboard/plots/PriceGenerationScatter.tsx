@@ -42,13 +42,13 @@ const PriceGenerationScatter = ({ data }) => {
             dataKey="totalGeneration" 
             type="number" 
             domain={['dataMin', 'dataMax']}
-            label={{ value: 'Total Generation (MW)', position: 'insideBottom', offset: -10 }}
+            label={{ value: 'Generación total (MW)', position: 'insideBottom', offset: -10 }}
             tick={{ fontSize: 12 }}
           />
           <YAxis 
             dataKey="spotPrice" 
             type="number"
-            label={{ value: 'Spot Price (€/MWh)', angle: -90, position: 'insideLeft' }}
+            label={{ value: 'Precio SPOT(€/MWh)', angle: -90, position: 'insideLeft' }}
             tick={{ fontSize: 12 }}
           />
           <Tooltip 

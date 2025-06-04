@@ -32,8 +32,8 @@ const EnergyMixPieChart = ({ data }) => {
 
     return [
       { name: 'Solar', value: totals.solar, percentage: ((totals.solar / total) * 100).toFixed(1) },
-      { name: 'Wind', value: totals.wind, percentage: ((totals.wind / total) * 100).toFixed(1) },
-      { name: 'Hydraulic', value: totals.hydraulic, percentage: ((totals.hydraulic / total) * 100).toFixed(1) },
+      { name: 'Eólica', value: totals.wind, percentage: ((totals.wind / total) * 100).toFixed(1) },
+      { name: 'Hidráulica', value: totals.hydraulic, percentage: ((totals.hydraulic / total) * 100).toFixed(1) },
       { name: 'Nuclear', value: totals.nuclear, percentage: ((totals.nuclear / total) * 100).toFixed(1) }
     ].filter(item => item.value > 0);
   }, [data]);
@@ -90,7 +90,7 @@ const EnergyMixPieChart = ({ data }) => {
               <Cell key={`cell-${index}`} fill={Object.values(COLORS)[index]} />
             ))}
           </Pie>
-          <Tooltip formatter={(value) => [`${value.toFixed(0)} MW`, 'Generation']} />
+          <Tooltip formatter={(value) => [`${value.toFixed(0)} MW`, 'Generación']} />
         </PieChart>
       </ResponsiveContainer>
     </div>

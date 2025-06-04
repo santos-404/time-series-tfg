@@ -6,18 +6,18 @@ const RegionalPriceComparison = ({ data }) => {
     if (!data || data.length === 0) return [];
     
     return data.map(item => ({
-      time: new Date(item.datetime).toLocaleTimeString('en-US', { 
+      time: new Date(item.datetime).toLocaleTimeString('es-ES', { 
         hour: '2-digit', 
         minute: '2-digit' 
       }),
-      date: new Date(item.datetime).toLocaleDateString('en-US', { 
+      date: new Date(item.datetime).toLocaleDateString('es-ES', { 
         month: 'short', 
         day: 'numeric' 
       }),
-      datetime_display: `${new Date(item.datetime).toLocaleDateString('en-US', { 
+      datetime_display: `${new Date(item.datetime).toLocaleDateString('es-ES', { 
         month: 'short', 
         day: 'numeric' 
-      })} ${new Date(item.datetime).toLocaleTimeString('en-US', { 
+      })} ${new Date(item.datetime).toLocaleTimeString('es-ES', { 
         hour: '2-digit', 
         minute: '2-digit' 
       })}`,

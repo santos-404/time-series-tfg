@@ -1,10 +1,17 @@
 import { useMemo } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 const RegionalAveragesBar = ({ data }) => {
+  const regionColors = {
+    "Baleares": "#FF8042",
+    "Canarias": "#00C49F", 
+    "Ceuta": "#FFBB28",
+    "Melilla": "#FF8888"
+  };
+
   const regionalAverages = useMemo(() => {
     if (!data || data.length === 0) return [];
-
+    
     const totals = data.reduce((acc, item) => {
       acc.Baleares += item.average_demand_price_573_Baleares || 0;
       acc.Canarias += item.average_demand_price_573_Canarias || 0;
@@ -12,7 +19,7 @@ const RegionalAveragesBar = ({ data }) => {
       acc.Melilla += item.average_demand_price_573_Melilla || 0;
       return acc;
     }, { Baleares: 0, Canarias: 0, Ceuta: 0, Melilla: 0 });
-
+    
     const count = data.length;
     
     return [
@@ -26,9 +33,9 @@ const RegionalAveragesBar = ({ data }) => {
   if (!regionalAverages.length) {
     return (
       <div className="bg-white p-6 rounded-lg shadow-lg h-full">
-        <h3 className="text-xl font-semibold mb-4">Precios medios por zonas</h3>
+        <h3 className="text-xl font-semibold mb-4">Precio medio de demanda por zonas</h3>
         <div className="flex items-center justify-center h-72">
-          <p className="text-gray-500">No hay datos diponibles</p>
+          <p className="text-gray-500">No hay datos disponibles</p>
         </div>
       </div>
     );
@@ -36,17 +43,25 @@ const RegionalAveragesBar = ({ data }) => {
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg h-full">
-      <h3 className="text-xl font-semibold mb-4">Precios medios por zonas</h3>
+      <h3 className="text-xl font-semibold mb-4">Precio medio de demanda por zonas</h3>
       <ResponsiveContainer width="100%" height={300}>
-        <BarChart 
+        <BarChart
           data={regionalAverages}
           margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="region" />
-          <YAxis label={{ value: '€/MWh', angle: -90, position: 'insideLeft' }} />
-          <Tooltip formatter={(value) => [`${value.toFixed(2)} €/MWh`, 'Average Price']} />
-          <Bar dataKey="price" fill="#8884d8" />
+          <YAxis
+            label={{ value: '€/MWh', angle: -90, position: 'insideLeft' }}
+          />
+          <Tooltip
+            formatter={(value) => [`${value.toFixed(2)} €/MWh`, 'Precio medio de demanda']}
+          />
+          <Bar dataKey="price">
+            {regionalAverages.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={regionColors[entry.region]} />
+            ))}
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
     </div>
