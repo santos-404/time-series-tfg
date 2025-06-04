@@ -6,6 +6,13 @@ import Loading from '@/components/ui/loading';
 import WelcomeMessage from '@/components/ui/welcomeMessage';
 import WeekNavigation from '@/components/dashboard/WeekNavigation';
 import type { HistoricalData } from '@/types/HistoricalData';
+import EnergyMixPieChart from '@/components/dashboard/plots/EnergyMixPieChart';
+import DailyAveragesBarChart from '@/components/dashboard/plots/DailyAveragesBarChart';
+import HourlyGenerationTrends from '@/components/dashboard/plots/HourlyGenerationTrends';
+import GenerationLineChart from '@/components/dashboard/plots/GenerationLineChart';
+import RegionalPriceComparison from '@/components/dashboard/plots/RegionalPriceComparision';
+import RegionalAveragesBar from '@/components/dashboard/plots/AverageRegionalPrices';
+import PriceGenerationScatter from '@/components/dashboard/plots/PriceGenerationScatter';
 
 // I obviously know that is not a good practice. But this is not aim to be deployed
 const API_URL = 'http://127.0.0.1:7777'
@@ -68,7 +75,6 @@ const TimeSeriesDashboard = () => {
       <div className="max-w-7xl mx-auto">
         <DashboardHeader/>
         
-        {/* Week Navigation Component */}
         <WeekNavigation
           currentDate={currentDate}
           onPreviousWeek={goToPreviousWeek}
@@ -86,6 +92,42 @@ const TimeSeriesDashboard = () => {
           currentDate={currentDate}
           daysToShow={daysToShow}
         />
+
+        <div className="space-y-6 mt-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div className="lg:col-span-3">
+              <GenerationLineChart data={processedData}/> 
+            </div>
+            <div className="lg:col-span-1 h-full">
+              <EnergyMixPieChart data={processedData}/>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6">
+            <div>
+              <HourlyGenerationTrends data={processedData}/> 
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div className="lg:col-span-3">
+              <RegionalPriceComparison data={processedData}/> 
+            </div>
+            <div className="lg:col-span-1">
+              <RegionalAveragesBar data={processedData}/>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div className="lg:col-span-1">
+              <DailyAveragesBarChart data={processedData}/>
+            </div>
+            <div className="lg:col-span-3">
+              <PriceGenerationScatter data={processedData}/> 
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   );
