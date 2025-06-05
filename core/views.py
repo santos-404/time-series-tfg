@@ -669,7 +669,9 @@ class LatestDataDateView(APIView):
                     'error': 'No hay datos disponibles en la base de datos'
                 }, status=status.HTTP_404_NOT_FOUND)
             
-            latest_date = latest_record.datetime_utc.date()
+            # We use one day before the actual latest date so every prediction works fine.
+            actual_latest_date = latest_record.datetime_utc.date()
+            latest_date = actual_latest_date - timedelta(days=1)
             
             oldest_record = TimeSeriesData.objects.order_by('datetime_utc').first()
             oldest_date = oldest_record.datetime_utc.date() if oldest_record else None
