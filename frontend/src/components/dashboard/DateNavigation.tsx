@@ -1,11 +1,11 @@
 import { ChevronLeft, ChevronRight, Calendar, Home } from 'lucide-react';
 
-const WeekNavigation = ({ 
+const DateNavigation = ({ 
   currentDate, 
-  onPreviousWeek, 
-  onNextWeek, 
-  onGoToLastWeekOfApril, 
-  canGoToNextWeek,
+  onPreviousDate, 
+  onNextDate, 
+  onGoToLatestDate, 
+  canGoToNextDate,
   daysToShow,
   setDaysToShow 
 }) => {
@@ -56,10 +56,10 @@ const WeekNavigation = ({
   return (
     <div className="bg-white rounded-xl shadow-lg p-4 mb-6">
       <div className="flex items-center justify-between">
-        {/* Left side - Week Navigation */}
+
         <div className="flex items-center gap-4">
           <button
-            onClick={onPreviousWeek}
+            onClick={onPreviousDate}
             className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
           >
             <ChevronLeft size={20} />
@@ -78,21 +78,21 @@ const WeekNavigation = ({
             </div>
             {!isLastWeekOfApril && (
               <button
-                onClick={onGoToLastWeekOfApril}
+                onClick={onGoToLatestDate}
                 className="flex items-center gap-1 px-2 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors"
                 title="Ir a última semana de Abril 2025"
               >
                 <Home size={16} />
-                <span className="hidden sm:inline">Actual</span>
+                <span className="hidden sm:inline">Más reciente</span>
               </button>
             )}
           </div>
 
           <button
-            onClick={onNextWeek}
-            disabled={!canGoToNextWeek}
+            onClick={onNextDate}
+            disabled={!canGoToNextDate}
             className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-              canGoToNextWeek 
+              canGoToNextDate 
                 ? 'text-gray-600 hover:text-blue-600 hover:bg-blue-50' 
                 : 'text-gray-300 cursor-not-allowed'
             }`}
@@ -127,6 +127,9 @@ const WeekNavigation = ({
             {daysToShow === 30 && ' (1 mes)'}
             {daysToShow === 90 && ' (3 meses)'}
           </span>
+          <span className="text-sm text-gray-500">
+            Por defecto se muestran los datos descargados más recientes. 
+          </span>
           {isLastWeekOfApril && (
             <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
               Período más reciente
@@ -138,4 +141,4 @@ const WeekNavigation = ({
   );
 };
 
-export default WeekNavigation;
+export default DateNavigation;
