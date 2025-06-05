@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePredictions } from '@/hooks/usePredictions';
 import { useFetch } from '@/hooks/useFetch'; 
 import type { PredictionRequest } from '@/types/PredictionData';
@@ -14,12 +14,48 @@ const API_URL = 'http://127.0.0.1:7777'
 
 const Predictions = () => {
   const [showHistorical, setShowHistorical] = useState<boolean>(true);
+  const [latestDateInfo, setLatestDateInfo] = useState(null);
+  const [isLoadingLatestDate, setIsLoadingLatestDate] = useState(true);
+  
   const [predictionConfig, setPredictionConfig] = useState<PredictionRequest>({
     model_name: 'lstm',
     hours_ahead: 1,
     input_hours: 24,
-    prediction_date: ''
+    prediction_date: '' 
   });
+
+  useEffect(() => {
+    const fetchLatestDate = async () => {
+      try {
+        setIsLoadingLatestDate(true);
+        const response = await fetch(`${API_URL}/api/v1/data/latest-date/`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setLatestDateInfo(data);
+        
+        setPredictionConfig(prev => ({
+          ...prev,
+          prediction_date: data.latest_date
+        }));
+        
+      } catch (error) {
+        console.error('Error fetching latest date:', error);
+        // Keep the fallback date if API call fails
+        setPredictionConfig(prev => ({
+          ...prev,
+          prediction_date: "2025-03-30"
+        }));
+      } finally {
+        setIsLoadingLatestDate(false);
+      }
+    };
+
+    fetchLatestDate();
+  }, []);
 
   const { predictionData, loading: predictionLoading, error: predictionError, predict } = usePredictions(API_URL);
   
@@ -31,9 +67,15 @@ const Predictions = () => {
   const { data: predictedHistoricalData, loading: historyLoading, refetch: refetchHistorical } = useFetch<HistoricalData>(historicalUrl);
 
   const handlePredict = async () => {
-    if (predictionConfig.prediction_date === "") 
-      predictionConfig.prediction_date = "2025-03-30";
-    await predict(predictionConfig);
+    // Use latest date as fallback if no date is selected
+    const dateToUse = predictionConfig.prediction_date || latestDateInfo?.latest_date || "2025-03-30";
+    
+    const configWithDate = {
+      ...predictionConfig,
+      prediction_date: dateToUse
+    };
+    
+    await predict(configWithDate);
 
     // Refetch historical data with the selected date
     if (refetchHistorical) {
@@ -71,6 +113,15 @@ const Predictions = () => {
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <h2 className="text-xl font-semibold mb-6">Configuración de la predicción</h2>
           
+          {isLoadingLatestDate && (
+            <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="animate-spin w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full"></div>
+                Cargando fecha más reciente...
+              </div>
+            </div>
+          )}
+          
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <ModelSelector
               selectedModel={predictionConfig.model_name}
@@ -83,6 +134,8 @@ const Predictions = () => {
               onPredict={handlePredict}
               isLoading={predictionLoading}
               error={predictionError}
+              latestDateInfo={latestDateInfo} 
+              isLatestDateLoading={isLoadingLatestDate}
             />
           </div>
         </div>
