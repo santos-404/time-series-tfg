@@ -155,23 +155,20 @@ class TimeSeriesPredictor:
         
         return train_df, val_df, test_df, date_time
     
-    def create_models(self) -> dict:
+    def create_models(self, num_features) -> dict:
         """Create all four models that can predict multiple timesteps"""
         models = {}
-        
-        # Linear model
+
         models['linear'] = tf.keras.Sequential([
-            tf.keras.layers.Dense(units=self.max_horizon)
+            tf.keras.layers.Dense(units=num_features)
         ])
         
-        # Dense model
         models['dense'] = tf.keras.Sequential([
             tf.keras.layers.Dense(units=64, activation='relu'),
             tf.keras.layers.Dense(units=64, activation='relu'),
-            tf.keras.layers.Dense(units=self.max_horizon)
+            tf.keras.layers.Dense(units=num_features)
         ])
         
-        # Conv model with global pooling to handle any output size
         models['conv'] = tf.keras.Sequential([
             tf.keras.layers.Conv1D(filters=32, kernel_size=3, activation='relu'),
             tf.keras.layers.GlobalAveragePooling1D(),
@@ -180,10 +177,9 @@ class TimeSeriesPredictor:
             tf.keras.layers.Reshape((self.max_horizon, 1))
         ])
         
-        # LSTM model
         models['lstm'] = tf.keras.Sequential([
             tf.keras.layers.LSTM(32, return_sequences=True),
-            tf.keras.layers.Dense(units=1)  # Applied to each timestep
+            tf.keras.layers.Dense(units=num_features)  # Change from 1 to num_features
         ])
         
         return models
@@ -211,17 +207,18 @@ class TimeSeriesPredictor:
     def train_models(self, train_df, val_df, test_df):
         """Train all four models with maximum horizon"""
         
-        # Create window with maximum horizon
+        label_columns=['scheduled_demand_365', 'daily_spot_market_600_España', 'daily_spot_market_600_Portugal']
+
         self.window = WindowGenerator(
             input_width=24, 
             label_width=self.max_horizon,
             shift=1,
             train_df=train_df, val_df=val_df, test_df=test_df,
-            label_columns=['daily_spot_market_600_España']
+            label_columns=label_columns
         )
         
         # Create all models
-        models = self.create_models()
+        models = self.create_models(num_features=len(label_columns))
         performance = {}
         
         for name, model in models.items():
@@ -255,31 +252,28 @@ class TimeSeriesPredictor:
         model = self.models[model_name]
         
         try:
-            # Normalize input data
+
             normalized_data = (recent_data - self.train_mean.values) / self.train_std.values
-            
-            # Reshape for prediction
             input_data = normalized_data.reshape(1, -1, len(self.column_indices))
-            
-            # Make prediction
             prediction = model.predict(input_data, verbose=0)
             
-            # Handle different model output shapes
-            if len(prediction.shape) == 3:  # LSTM output (batch, timesteps, features)
-                pred_values = prediction[0, :, 0]
-            else:  # Linear/Dense/Conv output (batch, features)
-                pred_values = prediction[0, :]
-            
-            # Denormalize prediction  
-            price_col_idx = self.column_indices['daily_spot_market_600_España']
-            denormalized_pred = (pred_values * self.train_std.iloc[price_col_idx] + 
-                               self.train_mean.iloc[price_col_idx])
-            
-            # Slice to get the requested number of hours
-            final_predictions = denormalized_pred[:hours_ahead]
+            if len(prediction.shape) == 3:  
+                pred_values = prediction[0, :, :]
+            else:  
+                pred_values = prediction[0, :].reshape(self.max_horizon, -1)
+                
+            feature_names = ['scheduled_demand_365', 'daily_spot_market_600_España', 'daily_spot_market_600_Portugal']
+            denormalized_predictions = {}
+
+            for i, feature_name in enumerate(feature_names):
+                col_idx = self.column_indices[feature_name]
+                denorm_pred = (pred_values[:, i] * self.train_std.iloc[col_idx] + 
+                              self.train_mean.iloc[col_idx])
+                denormalized_predictions[feature_name] = denorm_pred[:hours_ahead].tolist()
+    
             
             return {
-                'predictions': final_predictions.tolist(),
+                'predictions': denormalized_predictions, 
                 'model_used': model_name,
                 'hours_ahead': hours_ahead,
                 'max_available': self.max_horizon
