@@ -656,3 +656,44 @@ class MergeDataView(APIView):
                 'error': f'Hubo un error al unir los datos: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class LatestDataDateView(APIView):
+    """
+    Get the most recent date available in the database
+    """
+    def get(self, request):
+        try:
+            latest_record = TimeSeriesData.objects.order_by('-datetime_utc').first()
+            
+            if not latest_record:
+                return Response({
+                    'error': 'No hay datos disponibles en la base de datos'
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            # We use one day before the actual latest date so every prediction works fine.
+            actual_latest_date = latest_record.datetime_utc.date()
+            latest_date = actual_latest_date - timedelta(days=1)
+            
+            oldest_record = TimeSeriesData.objects.order_by('datetime_utc').first()
+            oldest_date = oldest_record.datetime_utc.date() if oldest_record else None
+            
+            total_days = (latest_date - oldest_date).days if oldest_date else 0
+            
+            return Response({
+                'latest_date': latest_date.isoformat(),
+                'oldest_date': oldest_date.isoformat() if oldest_date else None,
+                'total_days_available': total_days,
+                'total_records': TimeSeriesData.objects.count(),
+                'timezone': str(timezone.get_current_timezone()),
+                'suggested_defaults': {
+                    'end_date': latest_date.isoformat(),
+                    'days_30': (latest_date - timedelta(days=30)).isoformat(),
+                    'days_90': (latest_date - timedelta(days=90)).isoformat(),
+                    'days_365': (latest_date - timedelta(days=365)).isoformat()
+                }
+            })
+            
+        except Exception as e:
+            return Response({
+                'error': f'Fallo al obtener la fecha más reciente: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+

@@ -1,13 +1,13 @@
 const DataCategories = () => {
   const dataCategories = [
-    { name: 'Generación Hidraulica', description: 'Datos de generación de energía hidráulica', indicators: [1, 36, 71] },
-    { name: 'Generación Nuclear', description: 'Datos de generación de energía nuclear', indicators: [4, 39, 74] },
-    { name: 'Generación Eólica', description: 'Datos de generación de energía eólica', indicators: [12] },
-    { name: 'Generación Solar', description: 'Datos de generación de energía solar', indicators: [14] },
-    { name: 'Demanda Península', description: 'Previsión de demanda peninsular', indicators: [460] },
-    { name: 'Demanda Programada', description: 'Demanda de energía programada', indicators: [358, 365, 372] },
-    { name: 'Precio Mercado Diario', description: 'Precios del mercado spot diario', indicators: [600] },
-    { name: 'Precio Medio Demanda', description: 'Precio medio ponderado de la demanda', indicators: [573] }
+    { name: 'Generación hidraulica', description: 'Datos de generación de energía hidráulica', indicators: [1, 36, 71] },
+    { name: 'Generación nuclear', description: 'Datos de generación de energía nuclear', indicators: [4, 39, 74] },
+    { name: 'Generación eólica', description: 'Datos de generación de energía eólica', indicators: [12] },
+    { name: 'Generación solar', description: 'Datos de generación de energía solar', indicators: [14] },
+    { name: 'Demanda península', description: 'Previsión de demanda peninsular', indicators: [460] },
+    { name: 'Demanda programada', description: 'Demanda de energía programada', indicators: [358, 365, 372] },
+    { name: 'Precio mercado diario', description: 'Precios del mercado spot diario', indicators: [600] },
+    { name: 'Precio medio demanda', description: 'Precio medio de la demanda en Baleares, Canarias, Ceuta y Melilla', indicators: [573] }
   ];
 
   return (

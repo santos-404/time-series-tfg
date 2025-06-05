@@ -2,6 +2,7 @@ import React from 'react';
 import DateSelector from './DateSelector';
 import RangeInput from './RangeInput';
 import type { PredictionRequest } from '@/types/PredictionData';
+import type { LatestDateInfo } from '@/types/LatestDateInfo';
 
 interface PredictionParametersProps {
   config: PredictionRequest;
@@ -9,6 +10,8 @@ interface PredictionParametersProps {
   onPredict: () => void;
   isLoading: boolean;
   error: string | null;
+  latestDateInfo: LatestDateInfo;
+  isLatestDateLoading: boolean;
 }
 
 const PredictionParameters: React.FC<PredictionParametersProps> = ({
@@ -16,10 +19,11 @@ const PredictionParameters: React.FC<PredictionParametersProps> = ({
   onConfigChange,
   onPredict,
   isLoading,
-  error
+  error,
+  latestDateInfo,
+  isLatestDateLoading
 }) => {
-  const today = new Date().toISOString().split('T')[0];
-
+  
   return (
     <div>
       <h3 className="text-lg font-medium mb-4">Parámetros</h3>
@@ -27,7 +31,7 @@ const PredictionParameters: React.FC<PredictionParametersProps> = ({
         <DateSelector
           value={config.prediction_date}
           onChange={(date) => onConfigChange({ prediction_date: date })}
-          maxDate={today}
+          maxDate={latestDateInfo?.latest_date}
         />
         
         <RangeInput

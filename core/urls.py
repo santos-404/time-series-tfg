@@ -5,6 +5,7 @@ from .views import (
     HistoricalDataView, 
     DownloadDataView,
     MergeDataView,
+    LatestDataDateView
 )
 
 urlpatterns = [
@@ -14,5 +15,6 @@ urlpatterns = [
 
     path('data/download/', DownloadDataView.as_view(), name='download-data'),
     path('data/merge/', MergeDataView.as_view(), name='merge-data'),
+    path('data/latest-date/', LatestDataDateView.as_view(), name='latest-data'),
 ]
 
