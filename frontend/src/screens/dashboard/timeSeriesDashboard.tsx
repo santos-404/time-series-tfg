@@ -23,7 +23,6 @@ const TimeSeriesDashboard = () => {
                                              'average_demand_price_573_Melilla', 'average_demand_price_573_Baleares', 
                                             'daily_spot_market_600_España', 'daily_spot_market_600_Portugal']);
   
-  const [latestDateInfo, setLatestDateInfo] = useState(null);
   const [maxDate, setMaxDate] = useState(new Date(2025, 3, 30)); // Fallback default
   const [currentDate, setCurrentDate] = useState(new Date(2025, 3, 30)); 
   const [daysToShow, setDaysToShow] = useState(7); 
@@ -40,9 +39,8 @@ const TimeSeriesDashboard = () => {
         }
         
         const data = await response.json();
-        setLatestDateInfo(data);
-        
         const latestDate = new Date(data.latest_date + 'T23:59:59');
+        
         setMaxDate(latestDate);
         setCurrentDate(latestDate);
         
@@ -56,7 +54,7 @@ const TimeSeriesDashboard = () => {
     fetchLatestDate();
   }, []);
   
-  const formatDateForAPI = (date) => {
+  const formatDateForAPI = (date: string) => {
     return date.toISOString().split('T')[0];
   };
   
