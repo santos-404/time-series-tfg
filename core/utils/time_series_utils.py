@@ -173,13 +173,13 @@ class TimeSeriesPredictor:
             tf.keras.layers.Conv1D(filters=32, kernel_size=3, activation='relu'),
             tf.keras.layers.GlobalAveragePooling1D(),
             tf.keras.layers.Dense(units=32, activation='relu'),
-            tf.keras.layers.Dense(units=self.max_horizon),
-            tf.keras.layers.Reshape((self.max_horizon, 1))
+            tf.keras.layers.Dense(units=self.max_horizon * num_features),
+            tf.keras.layers.Reshape((self.max_horizon, num_features))
         ])
         
         models['lstm'] = tf.keras.Sequential([
             tf.keras.layers.LSTM(32, return_sequences=True),
-            tf.keras.layers.Dense(units=num_features)  # Change from 1 to num_features
+            tf.keras.layers.Dense(units=num_features)  
         ])
         
         return models
