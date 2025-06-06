@@ -107,11 +107,14 @@ const Predictions = () => {
       refetchHistorical();
     }
 
-    // The point here is to scroll to the bottom of the screen. But the screen get bigger
-    // when the plot is generated for the 1st time. Thats the reason behind waiting 200ms
+    // Here I need to wait a bit so the fetch is fully processed and the 
+    // div w/ id prediction-results got injected into the DOM
     setTimeout(() => {
-      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
-    }, 200);
+      const el = document.getElementById('prediction-results');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 150);
   };
 
   const handleConfigChange = (updates: Partial<PredictionRequest>) => {
@@ -181,13 +184,15 @@ const Predictions = () => {
         <InputFeatures />
 
         {predictionData ? (
-          <PredictionResults
-            predictionData={predictionData}
-            historicalData={predictedHistoricalData?.data}
-            showHistorical={showHistorical}
-            onToggleHistorical={setShowHistorical}
-            selectedVariables={sentLabels}
-          />
+          <div id="prediction-results">
+            <PredictionResults
+              predictionData={predictionData}
+              historicalData={predictedHistoricalData?.data}
+              showHistorical={showHistorical}
+              onToggleHistorical={setShowHistorical}
+              selectedVariables={sentLabels}
+            />
+          </div>
         ) : !predictionLoading ? (
           <EmptyState />
         ) : null}

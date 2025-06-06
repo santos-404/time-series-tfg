@@ -56,10 +56,14 @@ const DownloadData = () => {
       const data = await response.json();
       setDownloadResults(data);
       
-      // Scroll to results
+      // Here I need to wait a bit so the fetch is fully processed and the 
+      // div w/ id download-results got injected into the DOM
       setTimeout(() => {
-        window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
-      }, 200);
+        const el = document.getElementById('download-results');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 150);
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
@@ -116,10 +120,14 @@ const DownloadData = () => {
     
     setDownloadResults(mockDownloadResult);
     
-    // Scroll to merge section
+    // Here I need to wait a bit so the fetch is fully processed and the 
+    // div w/ id download-results got injected into the DOM
     setTimeout(() => {
-      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
-    }, 200);
+      const el = document.getElementById('download-results');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 150);
   };
 
   return (
@@ -165,11 +173,13 @@ const DownloadData = () => {
         {error && <ErrorDisplay error={error} />}
 
         {downloadResults && (
-          <DownloadResults
-            downloadResults={downloadResults}
-            isMerging={isMerging}
-            onMergeData={handleMergeData}
-          />
+          <div id="download-results">
+            <DownloadResults
+              downloadResults={downloadResults}
+              isMerging={isMerging}
+              onMergeData={handleMergeData}
+            />
+          </div>
         )}
 
         {mergeResults && <MergeResults mergeResults={mergeResults} />}
