@@ -23,7 +23,7 @@ const Predictions = () => {
   
   const [predictionConfig, setPredictionConfig] = useState<PredictionRequest>({
     model_name: 'lstm',
-    hours_ahead: 6,
+    hours_ahead: 21,
     input_hours: 24,
     prediction_date: '' 
   });
@@ -70,10 +70,17 @@ const Predictions = () => {
     'scheduled_demand_372',
     'peninsula_forecast_460'
   ];
-  
+
+  const addOneDay = (dateStr: string) => {
+    const date = new Date(dateStr);
+    date.setDate(date.getDate() + 1);
+    return date.toISOString().split('T')[0]; // formato 'YYYY-MM-DD'
+  };
+
+
   const historicalUrl = predictionConfig.prediction_date 
-    ? `${API_URL}/api/v1/historical?days=4&columns=${allColumns.join(',')}&end_date=${predictionConfig.prediction_date}`
-    : `${API_URL}/api/v1/historical?days=4&columns=${allColumns.join(',')}`;
+    ? `${API_URL}/api/v1/historical?days=3&columns=${allColumns.join(',')}&end_date=${addOneDay(predictionConfig.prediction_date)}`
+    : `${API_URL}/api/v1/historical?days=2&columns=${allColumns.join(',')}`;
   
   const { data: predictedHistoricalData, loading: historyLoading, refetch: refetchHistorical } = useFetch<HistoricalData>(historicalUrl);
 

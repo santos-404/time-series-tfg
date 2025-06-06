@@ -257,6 +257,88 @@ const PredictionChart: React.FC<PredictionChartProps> = ({
       </div>
 
       <div className="bg-white p-4 rounded-lg border">
+        <h3 className="text-lg font-semibold mb-4 text-gray-800">Demanda eléctrica</h3>
+        <div className="flex items-center gap-6 mb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-0.5 bg-purple-500"></div>
+            <span className="text-sm text-gray-700">Demanda Histórica</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-0.5 bg-cyan-500"></div>
+            <span className="text-sm text-gray-700">Previsión Histórica</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-0.5 bg-indigo-500"></div>
+            <span className="text-sm text-gray-700">Demanda Predicha</span>
+          </div>
+        </div>
+        <ResponsiveContainer width="100%" height={400}>
+          <LineChart data={demandChartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <XAxis 
+              dataKey="time" 
+              stroke="#666"
+              fontSize={12}
+              angle={-45}
+              textAnchor="end"
+              height={80}
+              interval="preserveStartEnd"
+            />
+            <YAxis 
+              stroke="#666"
+              fontSize={12}
+              label={{ value: 'Demanda (MW)', angle: -90, position: 'insideLeft' }}
+            />
+            <Tooltip content={<DemandTooltip />} />
+            <Legend />
+            
+            {demandPredictionStartTime && (
+              <ReferenceLine 
+                x={new Date(demandPredictionStartTime).toLocaleString('es-ES', { 
+                  month: 'short', 
+                  day: '2-digit', 
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+                stroke="#666" 
+                strokeDasharray="5 5" 
+                label={{ value: "Inicio predicciones", position: "topRight" }}
+              />
+            )}
+            
+            <Line
+              type="monotone"
+              dataKey="historicalDemand"
+              stroke="#1A237E"
+              strokeWidth={2}
+              dot={false}
+              name="Demanda Histórica"
+              connectNulls={false}
+            />
+            <Line
+              type="monotone"
+              dataKey="historicalForecast"
+              stroke="#F1C40F"
+              strokeWidth={2}
+              dot={false}
+              name="Previsión Histórica"
+              connectNulls={false}
+            />
+            
+            <Line
+              type="monotone"
+              dataKey="predictedDemand"
+              stroke="#3498DB"
+              strokeWidth={3}
+              dot={{ fill: '#6366f1', strokeWidth: 2, r: 4 }}
+              name="Demanda Predicha"
+              connectNulls={false}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="bg-white p-4 rounded-lg border">
         <h3 className="text-lg font-semibold mb-4 text-gray-800">Mercado SPOT - España y Portugal</h3>
         <div className="flex items-center gap-6 mb-4">
           <div className="flex items-center gap-2">
@@ -313,7 +395,7 @@ const PredictionChart: React.FC<PredictionChartProps> = ({
             <Line
               type="monotone"
               dataKey="historicalEspana"
-              stroke="#3b82f6"
+              stroke="#E63946"
               strokeWidth={2}
               dot={false}
               name="España histórico"
@@ -323,7 +405,7 @@ const PredictionChart: React.FC<PredictionChartProps> = ({
             <Line
               type="monotone"
               dataKey="historicalPortugal"
-              stroke="#10b981"
+              stroke="#008000"
               strokeWidth={2}
               dot={false}
               name="Portugal histórico"
@@ -332,18 +414,18 @@ const PredictionChart: React.FC<PredictionChartProps> = ({
             <Line
               type="monotone"
               dataKey="predictedEspana"
-              stroke="#f97316"
+              stroke="#E63946"
               strokeWidth={3}
-              dot={{ fill: '#f97316', strokeWidth: 2, r: 4 }}
+              dot={{ fill: '#E63946', strokeWidth: 2, r: 4 }}
               name="España Predicción"
               connectNulls={false}
             />
             <Line
               type="monotone"
               dataKey="predictedPortugal"
-              stroke="#ef4444"
+              stroke="#2ECC71"
               strokeWidth={3}
-              dot={{ fill: '#ef4444', strokeWidth: 2, r: 4 }}
+              dot={{ fill: '#2ECC71', strokeWidth: 2, r: 4 }}
               name="Portugal Predicción"
               connectNulls={false}
             />
@@ -351,87 +433,6 @@ const PredictionChart: React.FC<PredictionChartProps> = ({
         </ResponsiveContainer>
       </div>
 
-      <div className="bg-white p-4 rounded-lg border">
-        <h3 className="text-lg font-semibold mb-4 text-gray-800">Demanda eléctrica</h3>
-        <div className="flex items-center gap-6 mb-4">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-0.5 bg-purple-500"></div>
-            <span className="text-sm text-gray-700">Demanda Histórica</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-0.5 bg-cyan-500"></div>
-            <span className="text-sm text-gray-700">Previsión Histórica</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-0.5 bg-indigo-500"></div>
-            <span className="text-sm text-gray-700">Demanda Predicha</span>
-          </div>
-        </div>
-        <ResponsiveContainer width="100%" height={400}>
-          <LineChart data={demandChartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis 
-              dataKey="time" 
-              stroke="#666"
-              fontSize={12}
-              angle={-45}
-              textAnchor="end"
-              height={80}
-              interval="preserveStartEnd"
-            />
-            <YAxis 
-              stroke="#666"
-              fontSize={12}
-              label={{ value: 'Demanda (MW)', angle: -90, position: 'insideLeft' }}
-            />
-            <Tooltip content={<DemandTooltip />} />
-            <Legend />
-            
-            {demandPredictionStartTime && (
-              <ReferenceLine 
-                x={new Date(demandPredictionStartTime).toLocaleString('es-ES', { 
-                  month: 'short', 
-                  day: '2-digit', 
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
-                stroke="#666" 
-                strokeDasharray="5 5" 
-                label={{ value: "Inicio predicciones", position: "topRight" }}
-              />
-            )}
-            
-            <Line
-              type="monotone"
-              dataKey="historicalDemand"
-              stroke="#8b5cf6"
-              strokeWidth={2}
-              dot={false}
-              name="Demanda Histórica"
-              connectNulls={false}
-            />
-            <Line
-              type="monotone"
-              dataKey="historicalForecast"
-              stroke="#06b6d4"
-              strokeWidth={2}
-              dot={false}
-              name="Previsión Histórica"
-              connectNulls={false}
-            />
-            
-            <Line
-              type="monotone"
-              dataKey="predictedDemand"
-              stroke="#6366f1"
-              strokeWidth={3}
-              dot={{ fill: '#6366f1', strokeWidth: 2, r: 4 }}
-              name="Demanda Predicha"
-              connectNulls={false}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">

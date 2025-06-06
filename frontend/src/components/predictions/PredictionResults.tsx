@@ -21,7 +21,7 @@ const PredictionResults: React.FC<PredictionResultsProps> = ({
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold">
-              Mercado Spot - España y Portugal
+              Predicciones de demanda eléctrica y mercado SPOT 
             </h2>
             <label className="flex items-center cursor-pointer">
               <span className="mr-3 text-sm font-medium text-gray-700">
