@@ -67,7 +67,7 @@ const Predictions = () => {
   const allColumns = [
     'daily_spot_market_600_España',
     'daily_spot_market_600_Portugal', 
-    'scheduled_demand_365',
+    'scheduled_demand_372',
     'peninsula_forecast_460'
   ];
   

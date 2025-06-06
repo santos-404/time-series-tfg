@@ -91,14 +91,14 @@ const PredictionChart: React.FC<PredictionChartProps> = ({
             hour: '2-digit',
             minute: '2-digit'
           }),
-          historicalDemand: point.scheduled_demand_365, 
+          historicalDemand: point.scheduled_demand_372, 
           historicalForecast: point.peninsula_forecast_460,
           isPrediction: false
         });
       });
     }
 
-    predictionData.predictions.scheduled_demand_365?.forEach((prediction, index) => {
+    predictionData.predictions.scheduled_demand_372?.forEach((prediction, index) => {
       const timestamp = predictionData.timestamps[index];
       const date = new Date(timestamp);
       const existingPoint = data.find(d => d.timestamp === timestamp);
@@ -225,7 +225,7 @@ const PredictionChart: React.FC<PredictionChartProps> = ({
   }, [predictionData]);
 
   const demandStats = React.useMemo(() => {
-    const demandPredictions = predictionData.predictions.scheduled_demand_365 || [];
+    const demandPredictions = predictionData.predictions.scheduled_demand_372 || [];
     
     const stats = {
       demand: { max: 0, min: 0, avg: 0 }
@@ -530,7 +530,7 @@ const PredictionChart: React.FC<PredictionChartProps> = ({
                     PT: {predictionData.predictions.daily_spot_market_600_Portugal?.[index]?.toFixed(1) || 'N/A'} €/MWh
                   </div>
                   <div className="text-indigo-600 font-semibold">
-                    Demanda: {predictionData.predictions.scheduled_demand_365?.[index]?.toFixed(0) || 'N/A'} MW
+                    Demanda: {predictionData.predictions.scheduled_demand_372?.[index]?.toFixed(0) || 'N/A'} MW
                   </div>
                 </div>
               </div>

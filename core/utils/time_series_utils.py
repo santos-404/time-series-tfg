@@ -207,7 +207,7 @@ class TimeSeriesPredictor:
     def train_models(self, train_df, val_df, test_df):
         """Train all four models with maximum horizon"""
         
-        label_columns=['scheduled_demand_365', 'daily_spot_market_600_España', 'daily_spot_market_600_Portugal']
+        label_columns=['scheduled_demand_372', 'daily_spot_market_600_España', 'daily_spot_market_600_Portugal']
 
         self.window = WindowGenerator(
             input_width=24, 
@@ -262,7 +262,7 @@ class TimeSeriesPredictor:
             else:  
                 pred_values = prediction[0, :].reshape(self.max_horizon, -1)
                 
-            feature_names = ['scheduled_demand_365', 'daily_spot_market_600_España', 'daily_spot_market_600_Portugal']
+            feature_names = ['scheduled_demand_372', 'daily_spot_market_600_España', 'daily_spot_market_600_Portugal']
             denormalized_predictions = {}
 
             for i, feature_name in enumerate(feature_names):
