@@ -6,9 +6,17 @@ const PredictionChart: React.FC<PredictionChartProps> = ({
   predictionData,
   historicalData = [],
   showHistorical = true,
+  selectedVariables
 }) => {
 
-  // Chart data for Spot Market (España & Portugal)
+  const showSPOT = selectedVariables.includes("showSPOT");
+  const showDemand = selectedVariables.includes("showDemand");
+  const containerGridClasses = `
+    grid 
+    gap-6 
+    ${showSPOT && showDemand ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"}
+  `.trim();
+
   const spotMarketChartData = React.useMemo(() => {
     const data: Array<{
       timestamp: string;
@@ -256,255 +264,280 @@ const PredictionChart: React.FC<PredictionChartProps> = ({
         </div>
       </div>
 
-      <div className="bg-white p-4 rounded-lg border">
-        <h3 className="text-lg font-semibold mb-4 text-gray-800">Demanda eléctrica</h3>
-        <div className="flex items-center gap-6 mb-4">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-0.5 bg-purple-500"></div>
-            <span className="text-sm text-gray-700">Demanda Histórica</span>
+      {showDemand &&
+        <div className="bg-white p-4 rounded-lg border">
+          <h3 className="text-lg font-semibold mb-4 text-gray-800">Demanda eléctrica</h3>
+          <div className="flex items-center gap-6 mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-0.5 bg-purple-500"></div>
+              <span className="text-sm text-gray-700">Demanda Histórica</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-0.5 bg-cyan-500"></div>
+              <span className="text-sm text-gray-700">Previsión Histórica</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-0.5 bg-indigo-500"></div>
+              <span className="text-sm text-gray-700">Demanda Predicha</span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-0.5 bg-cyan-500"></div>
-            <span className="text-sm text-gray-700">Previsión Histórica</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-0.5 bg-indigo-500"></div>
-            <span className="text-sm text-gray-700">Demanda Predicha</span>
-          </div>
-        </div>
-        <ResponsiveContainer width="100%" height={400}>
-          <LineChart data={demandChartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis 
-              dataKey="time" 
-              stroke="#666"
-              fontSize={12}
-              angle={-45}
-              textAnchor="end"
-              height={80}
-              interval="preserveStartEnd"
-            />
-            <YAxis 
-              stroke="#666"
-              fontSize={12}
-              label={{ value: 'Demanda (MW)', angle: -90, position: 'insideLeft' }}
-            />
-            <Tooltip content={<DemandTooltip />} />
-            <Legend />
-            
-            {demandPredictionStartTime && (
-              <ReferenceLine 
-                x={new Date(demandPredictionStartTime).toLocaleString('es-ES', { 
-                  month: 'short', 
-                  day: '2-digit', 
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
-                stroke="#666" 
-                strokeDasharray="5 5" 
-                label={{ value: "Inicio predicciones", position: "topRight" }}
+          <ResponsiveContainer width="100%" height={400}>
+            <LineChart data={demandChartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis 
+                dataKey="time" 
+                stroke="#666"
+                fontSize={12}
+                angle={-45}
+                textAnchor="end"
+                height={80}
+                interval="preserveStartEnd"
               />
-            )}
-            
-            <Line
-              type="monotone"
-              dataKey="historicalDemand"
-              stroke="#1A237E"
-              strokeWidth={2}
-              dot={false}
-              name="Demanda Histórica"
-              connectNulls={false}
-            />
-            <Line
-              type="monotone"
-              dataKey="historicalForecast"
-              stroke="#F1C40F"
-              strokeWidth={2}
-              dot={false}
-              name="Previsión Histórica"
-              connectNulls={false}
-            />
-            
-            <Line
-              type="monotone"
-              dataKey="predictedDemand"
-              stroke="#3498DB"
-              strokeWidth={3}
-              dot={{ fill: '#6366f1', strokeWidth: 2, r: 4 }}
-              name="Demanda Predicha"
-              connectNulls={false}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-
-      <div className="bg-white p-4 rounded-lg border">
-        <h3 className="text-lg font-semibold mb-4 text-gray-800">Mercado SPOT - España y Portugal</h3>
-        <div className="flex items-center gap-6 mb-4">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-0.5 bg-blue-500"></div>
-            <span className="text-sm text-gray-700">España Histórico</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-0.5 bg-green-500"></div>
-            <span className="text-sm text-gray-700">Portugal Histórico</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-0.5 bg-orange-500"></div>
-            <span className="text-sm text-gray-700">España Predicción</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-0.5 bg-red-500"></div>
-            <span className="text-sm text-gray-700">Portugal Predicción</span>
-          </div>
-        </div>
-        <ResponsiveContainer width="100%" height={400}>
-          <LineChart data={spotMarketChartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis 
-              dataKey="time" 
-              stroke="#666"
-              fontSize={12}
-              angle={-45}
-              textAnchor="end"
-              height={80}
-              interval="preserveStartEnd"
-            />
-            <YAxis 
-              stroke="#666"
-              fontSize={12}
-              label={{ value: 'Precio (€/MWh)', angle: -90, position: 'insideLeft' }}
-            />
-            <Tooltip content={<SpotMarketTooltip />} />
-            <Legend />
-            
-            {spotPredictionStartTime && (
-              <ReferenceLine 
-                x={new Date(spotPredictionStartTime).toLocaleString('es-ES', { 
-                  month: 'short', 
-                  day: '2-digit', 
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
-                stroke="#666" 
-                strokeDasharray="5 5" 
-                label={{ value: "Inicio predicciones", position: "topRight" }}
+              <YAxis 
+                stroke="#666"
+                fontSize={12}
+                label={{ value: 'Demanda (MW)', angle: -90, position: 'insideLeft' }}
               />
-            )}
-            
-            <Line
-              type="monotone"
-              dataKey="historicalEspana"
-              stroke="#E63946"
-              strokeWidth={2}
-              dot={false}
-              name="España histórico"
-              connectNulls={false}
-            />
+              <Tooltip content={<DemandTooltip />} />
+              <Legend />
+              
+              {demandPredictionStartTime && (
+                <ReferenceLine 
+                  x={new Date(demandPredictionStartTime).toLocaleString('es-ES', { 
+                    month: 'short', 
+                    day: '2-digit', 
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                  stroke="#666" 
+                  strokeDasharray="5 5" 
+                  label={{ value: "Inicio predicciones", position: "topRight" }}
+                />
+              )}
+              
+              <Line
+                type="monotone"
+                dataKey="historicalDemand"
+                stroke="#1A237E"
+                strokeWidth={2}
+                dot={false}
+                name="Demanda Histórica"
+                connectNulls={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="historicalForecast"
+                stroke="#F1C40F"
+                strokeWidth={2}
+                dot={false}
+                name="Previsión Histórica"
+                connectNulls={false}
+              />
+              
+              <Line
+                type="monotone"
+                dataKey="predictedDemand"
+                stroke="#3498DB"
+                strokeWidth={3}
+                dot={{ fill: '#6366f1', strokeWidth: 2, r: 4 }}
+                name="Demanda Predicha"
+                connectNulls={false}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      }
 
-            <Line
-              type="monotone"
-              dataKey="historicalPortugal"
-              stroke="#008000"
-              strokeWidth={2}
-              dot={false}
-              name="Portugal histórico"
-              connectNulls={false}
-            /> 
-            <Line
-              type="monotone"
-              dataKey="predictedEspana"
-              stroke="#E63946"
-              strokeWidth={3}
-              dot={{ fill: '#E63946', strokeWidth: 2, r: 4 }}
-              name="España Predicción"
-              connectNulls={false}
-            />
-            <Line
-              type="monotone"
-              dataKey="predictedPortugal"
-              stroke="#2ECC71"
-              strokeWidth={3}
-              dot={{ fill: '#2ECC71', strokeWidth: 2, r: 4 }}
-              name="Portugal Predicción"
-              connectNulls={false}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+      {showSPOT &&
+        <div className="bg-white p-4 rounded-lg border">
+          <h3 className="text-lg font-semibold mb-4 text-gray-800">Mercado SPOT - España y Portugal</h3>
+          <div className="flex items-center gap-6 mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-0.5 bg-blue-500"></div>
+              <span className="text-sm text-gray-700">España Histórico</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-0.5 bg-green-500"></div>
+              <span className="text-sm text-gray-700">Portugal Histórico</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-0.5 bg-orange-500"></div>
+              <span className="text-sm text-gray-700">España Predicción</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-0.5 bg-red-500"></div>
+              <span className="text-sm text-gray-700">Portugal Predicción</span>
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={400}>
+            <LineChart data={spotMarketChartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis 
+                dataKey="time" 
+                stroke="#666"
+                fontSize={12}
+                angle={-45}
+                textAnchor="end"
+                height={80}
+                interval="preserveStartEnd"
+              />
+              <YAxis 
+                stroke="#666"
+                fontSize={12}
+                label={{ value: 'Precio (€/MWh)', angle: -90, position: 'insideLeft' }}
+              />
+              <Tooltip content={<SpotMarketTooltip />} />
+              <Legend />
+              
+              {spotPredictionStartTime && (
+                <ReferenceLine 
+                  x={new Date(spotPredictionStartTime).toLocaleString('es-ES', { 
+                    month: 'short', 
+                    day: '2-digit', 
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                  stroke="#666" 
+                  strokeDasharray="5 5" 
+                  label={{ value: "Inicio predicciones", position: "topRight" }}
+                />
+              )}
+              
+              <Line
+                type="monotone"
+                dataKey="historicalEspana"
+                stroke="#E63946"
+                strokeWidth={2}
+                dot={false}
+                name="España histórico"
+                connectNulls={false}
+              />
 
+              <Line
+                type="monotone"
+                dataKey="historicalPortugal"
+                stroke="#008000"
+                strokeWidth={2}
+                dot={false}
+                name="Portugal histórico"
+                connectNulls={false}
+              /> 
+              <Line
+                type="monotone"
+                dataKey="predictedEspana"
+                stroke="#E63946"
+                strokeWidth={3}
+                dot={{ fill: '#E63946', strokeWidth: 2, r: 4 }}
+                name="España Predicción"
+                connectNulls={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="predictedPortugal"
+                stroke="#2ECC71"
+                strokeWidth={3}
+                dot={{ fill: '#2ECC71', strokeWidth: 2, r: 4 }}
+                name="Portugal Predicción"
+                connectNulls={false}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      }
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <h4 className="font-semibold text-gray-800">Estadísticas mercado spot</h4>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-              <h5 className="font-semibold text-red-800 mb-3 flex items-center">
-                <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-                España
+      <div className={containerGridClasses}>
+        {showSPOT && (
+          <div className="space-y-4">
+            <h4 className="font-semibold text-gray-800">Estadísticas mercado spot</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                <h5 className="font-semibold text-red-800 mb-3 flex items-center">
+                  <div className="w-3 h-3 bg-red-500 rounded-full mr-2" />
+                  España
+                </h5>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Máximo:</span>
+                    <span className="font-medium">
+                      {spotStats.espana.max.toFixed(2)} €/MWh
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Mínimo:</span>
+                    <span className="font-medium">
+                      {spotStats.espana.min.toFixed(2)} €/MWh
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Promedio:</span>
+                    <span className="font-medium">
+                      {spotStats.espana.avg.toFixed(2)} €/MWh
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                <h5 className="font-semibold text-green-800 mb-3 flex items-center">
+                  <div className="w-3 h-3 bg-green-500 rounded-full mr-2" />
+                  Portugal
+                </h5>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Máximo:</span>
+                    <span className="font-medium">
+                      {spotStats.portugal.max.toFixed(2)} €/MWh
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Mínimo:</span>
+                    <span className="font-medium">
+                      {spotStats.portugal.min.toFixed(2)} €/MWh
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Promedio:</span>
+                    <span className="font-medium">
+                      {spotStats.portugal.avg.toFixed(2)} €/MWh
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showDemand && (
+          <div className="space-y-4">
+            <h4 className="font-semibold text-gray-800">Estadísticas demanda</h4>
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <h5 className="font-semibold text-blue-800 mb-3 flex items-center">
+                <div className="w-3 h-3 bg-blue-500 rounded-full mr-2" />
+                Demanda predicha
               </h5>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Máximo:</span>
-                  <span className="font-medium">{spotStats.espana.max.toFixed(2)} €/MWh</span>
+                  <span className="font-medium">
+                    {demandStats.demand.max.toFixed(2)} MW
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Mínimo:</span>
-                  <span className="font-medium">{spotStats.espana.min.toFixed(2)} €/MWh</span>
+                  <span className="font-medium">
+                    {demandStats.demand.min.toFixed(2)} MW
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Promedio:</span>
-                  <span className="font-medium">{spotStats.espana.avg.toFixed(2)} €/MWh</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-              <h5 className="font-semibold text-green-800 mb-3 flex items-center">
-                <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                Portugal
-              </h5>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Máximo:</span>
-                  <span className="font-medium">{spotStats.portugal.max.toFixed(2)} €/MWh</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Mínimo:</span>
-                  <span className="font-medium">{spotStats.portugal.min.toFixed(2)} €/MWh</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Promedio:</span>
-                  <span className="font-medium">{spotStats.portugal.avg.toFixed(2)} €/MWh</span>
+                  <span className="font-medium">
+                    {demandStats.demand.avg.toFixed(2)} MW
+                  </span>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-
-        <div className="space-y-4">
-          <h4 className="font-semibold text-gray-800">Estadísticas demanda</h4>
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <h5 className="font-semibold text-blue-800 mb-3 flex items-center">
-              <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-              Demanda predicha
-            </h5>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Máximo:</span>
-                <span className="font-medium">{demandStats.demand.max.toFixed(2)} MW</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Mínimo:</span>
-                <span className="font-medium">{demandStats.demand.min.toFixed(2)} MW</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Promedio:</span>
-                <span className="font-medium">{demandStats.demand.avg.toFixed(2)} MW</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
 
       <div className="bg-gray-50 p-4 rounded-lg border">
@@ -523,15 +556,22 @@ const PredictionChart: React.FC<PredictionChartProps> = ({
                   })}
                 </div>
                 <div className="space-y-1">
-                  <div className="text-red-600 font-semibold">
-                    ES: {predictionData.predictions.daily_spot_market_600_España?.[index]?.toFixed(1) || 'N/A'} €/MWh
-                  </div>
-                  <div className="text-green-600 font-semibold">
-                    PT: {predictionData.predictions.daily_spot_market_600_Portugal?.[index]?.toFixed(1) || 'N/A'} €/MWh
-                  </div>
-                  <div className="text-blue-600 font-semibold">
-                    Demanda: {predictionData.predictions.scheduled_demand_372?.[index]?.toFixed(0) || 'N/A'} MW
-                  </div>
+
+                  {showSPOT &&
+                    <>
+                      <div className="text-red-600 font-semibold">
+                        ES: {predictionData.predictions.daily_spot_market_600_España?.[index]?.toFixed(1) || 'N/A'} €/MWh
+                      </div>
+                      <div className="text-green-600 font-semibold">
+                        PT: {predictionData.predictions.daily_spot_market_600_Portugal?.[index]?.toFixed(1) || 'N/A'} €/MWh
+                      </div>
+                    </>
+                  }
+                  {showDemand &&
+                    <div className="text-blue-600 font-semibold">
+                      Demanda: {predictionData.predictions.scheduled_demand_372?.[index]?.toFixed(0) || 'N/A'} MW
+                    </div>
+                  }
                 </div>
               </div>
             );

@@ -17,10 +17,9 @@ const Predictions = () => {
   const [showHistorical, setShowHistorical] = useState<boolean>(true);
   const [latestDateInfo, setLatestDateInfo] = useState(null);
   const [isLoadingLatestDate, setIsLoadingLatestDate] = useState(true);
-  const [selectedVariables, setSelectedVariables] = useState<string[]>([
-    'daily_spot_market_600_España' 
-  ]);
-  
+  const [selectedVariables, setSelectedVariables] = useState<string[]>(['showDemand', 'showSPOT']);
+  const [sentLabels, setSentLabels] = useState<string[]>([]);
+
   const [predictionConfig, setPredictionConfig] = useState<PredictionRequest>({
     model_name: 'lstm',
     hours_ahead: 21,
@@ -61,7 +60,7 @@ const Predictions = () => {
     fetchLatestDate();
   }, []);
 
-  const { predictionData, loading: predictionLoading, error: predictionError, predict } = usePredictions(API_URL);
+  const { predictionData, loading: predictionLoading, error: predictionError, predict} = usePredictions(API_URL);
   
   // Build historical data URL with all required columns and end_date parameter
   const allColumns = [
@@ -90,6 +89,8 @@ const Predictions = () => {
       alert('Debes seleccionar al menos una variable para realizar predicciones.');
       return;
     }
+
+    setSentLabels([...selectedVariables]);
     
     // Use latest date as fallback if no date is selected
     const dateToUse = predictionConfig.prediction_date || latestDateInfo?.latest_date || "2025-03-30";
@@ -185,7 +186,7 @@ const Predictions = () => {
             historicalData={predictedHistoricalData?.data}
             showHistorical={showHistorical}
             onToggleHistorical={setShowHistorical}
-            selectedVariables={selectedVariables}
+            selectedVariables={sentLabels}
           />
         ) : !predictionLoading ? (
           <EmptyState />

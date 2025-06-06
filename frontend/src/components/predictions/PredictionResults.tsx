@@ -14,6 +14,7 @@ const PredictionResults: React.FC<PredictionResultsProps> = ({
   historicalData,
   showHistorical,
   onToggleHistorical,
+  selectedVariables
 }) => {
 
   return (
@@ -49,6 +50,7 @@ const PredictionResults: React.FC<PredictionResultsProps> = ({
             predictionData={predictionData}
             historicalData={historicalData}
             showHistorical={showHistorical}
+            selectedVariables={selectedVariables}
           />
         </div>
 

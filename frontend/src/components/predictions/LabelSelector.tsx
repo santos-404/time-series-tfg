@@ -7,17 +7,15 @@ interface VariableSelectorProps {
 
 const AVAILABLE_VARIABLES = [
   {
-    key: 'scheduled_demand_365',
+    key: 'showDemand',
     label: 'Demanda programada',
+    description: 'Precio estimado de la demanda.'
   },
   {
-    key: 'daily_spot_market_600_España',
-    label: 'Precio España',
+    key: 'showSPOT',
+    label: 'Mercado SPOT',
+    description: 'Precio en el mercado SPOT de España y Portugal.'
   },
-  {
-    key: 'daily_spot_market_600_Portugal',
-    label: 'Precio Portugal',
-  }
 ];
 
 const LabelSelector: React.FC<VariableSelectorProps> = ({
@@ -71,6 +69,9 @@ const LabelSelector: React.FC<VariableSelectorProps> = ({
             <div className="flex-1">
               <div className="text-sm font-medium text-gray-900">
                 {variable.label}
+              </div>
+              <div className='text-xs text-gray-500'>
+                {variable.description}
               </div>
             </div>
           </label>
