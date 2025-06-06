@@ -14,7 +14,7 @@ Originally developed as a set of Python scripts and Jupyter notebooks for data p
 
 ![App Screenshot](public/app_screenshot.png)
 
-The web app is in Spanish, as is the language of the final report.
+> The web app is in Spanish, as is the language of the final report.
 
 ---
 
@@ -24,11 +24,9 @@ To get the application running locally (backend and frontend), please refer to [
 
 ---
 
-## License
+## Contributions 
 
-This project is licensed under the **MIT License**.  
-
-> The project **does not accept contributions** as it is a personal academic work.
+This project **does not accept contributions** as it is a personal academic work.
 
 
 ---
