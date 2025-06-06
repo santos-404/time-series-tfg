@@ -26,6 +26,7 @@ export interface PredictionChartProps {
   predictionData: PredictionData;
   historicalData?: HistoricalDataPoint[];
   showHistorical?: boolean;
+  selectedVariables: string[];
   chartType?: 'line' | 'area';
 }
 

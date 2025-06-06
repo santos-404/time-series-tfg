@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { usePredictions } from '@/hooks/usePredictions';
 import { useFetch } from '@/hooks/useFetch'; 
 import type { PredictionRequest } from '@/types/PredictionData';
 import type { HistoricalData } from '@/types/HistoricalData';
 import ModelSelector from '@/components/predictions/ModelSelector';
 import PredictionParameters from '@/components/predictions/PredictionParameters';
+import LabelSelector from '@/components/predictions/LabelSelector';
 import InputFeatures from '@/components/predictions/InputFeatures';
 import PredictionResults from '@/components/predictions/PredictionResults';
 import EmptyState from '@/components/predictions/EmptyState';
@@ -16,11 +17,13 @@ const Predictions = () => {
   const [showHistorical, setShowHistorical] = useState<boolean>(true);
   const [latestDateInfo, setLatestDateInfo] = useState(null);
   const [isLoadingLatestDate, setIsLoadingLatestDate] = useState(true);
-  
+  const [selectedVariables, setSelectedVariables] = useState<string[]>(['showDemand', 'showSPOT']);
+  const [sentLabels, setSentLabels] = useState<string[]>([]);
+
   const [predictionConfig, setPredictionConfig] = useState<PredictionRequest>({
     model_name: 'lstm',
-    hours_ahead: 1,
-    input_hours: 24,
+    hours_ahead: 21,
+    input_hours: 168,
     prediction_date: '' 
   });
 
@@ -57,16 +60,38 @@ const Predictions = () => {
     fetchLatestDate();
   }, []);
 
-  const { predictionData, loading: predictionLoading, error: predictionError, predict } = usePredictions(API_URL);
+  const { predictionData, loading: predictionLoading, error: predictionError, predict} = usePredictions(API_URL);
   
-  // Build historical data URL with end_date parameter
+  // Build historical data URL with all required columns and end_date parameter
+  const allColumns = [
+    'daily_spot_market_600_España',
+    'daily_spot_market_600_Portugal', 
+    'scheduled_demand_372',
+    'peninsula_forecast_460'
+  ];
+
+  const addOneDay = (dateStr: string) => {
+    const date = new Date(dateStr);
+    date.setDate(date.getDate() + 1);
+    return date.toISOString().split('T')[0]; // formato 'YYYY-MM-DD'
+  };
+
+
   const historicalUrl = predictionConfig.prediction_date 
-    ? `${API_URL}/api/v1/historical?days=7&columns=daily_spot_market_600_España&end_date=${predictionConfig.prediction_date}`
-    : `${API_URL}/api/v1/historical?days=7&columns=daily_spot_market_600_España`;
+    ? `${API_URL}/api/v1/historical?days=3&columns=${allColumns.join(',')}&end_date=${addOneDay(predictionConfig.prediction_date)}`
+    : `${API_URL}/api/v1/historical?days=2&columns=${allColumns.join(',')}`;
   
   const { data: predictedHistoricalData, loading: historyLoading, refetch: refetchHistorical } = useFetch<HistoricalData>(historicalUrl);
 
   const handlePredict = async () => {
+    // Validate that at least one variable is selected
+    if (selectedVariables.length === 0) {
+      alert('Debes seleccionar al menos una variable para realizar predicciones.');
+      return;
+    }
+
+    setSentLabels([...selectedVariables]);
+    
     // Use latest date as fallback if no date is selected
     const dateToUse = predictionConfig.prediction_date || latestDateInfo?.latest_date || "2025-03-30";
     
@@ -82,11 +107,14 @@ const Predictions = () => {
       refetchHistorical();
     }
 
-    // The point here is to scroll to the bottom of the screen. But the screen get bigger
-    // when the plot is generated for the 1st time. Thats the reason behind waiting 200ms
+    // Here I need to wait a bit so the fetch is fully processed and the 
+    // div w/ id prediction-results got injected into the DOM
     setTimeout(() => {
-      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
-    }, 200);
+      const el = document.getElementById('prediction-results');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 150);
   };
 
   const handleConfigChange = (updates: Partial<PredictionRequest>) => {
@@ -95,6 +123,10 @@ const Predictions = () => {
 
   const handleModelChange = (model: string) => {
     setPredictionConfig(prev => ({ ...prev, model_name: model }));
+  };
+
+  const handleVariablesChange = (variables: string[]) => {
+    setSelectedVariables(variables);
   };
 
   return (
@@ -121,34 +153,46 @@ const Predictions = () => {
               </div>
             </div>
           )}
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <ModelSelector
-              selectedModel={predictionConfig.model_name}
-              onModelChange={handleModelChange}
-            />
             
-            <PredictionParameters
-              config={predictionConfig}
-              onConfigChange={handleConfigChange}
-              onPredict={handlePredict}
-              isLoading={predictionLoading}
-              error={predictionError}
-              latestDateInfo={latestDateInfo} 
-              isLatestDateLoading={isLoadingLatestDate}
-            />
-          </div>
+          <div className="grid grid-cols-5 gap-6">
+            <div className="col-span-3">
+              <ModelSelector
+                selectedModel={predictionConfig.model_name}
+                onModelChange={handleModelChange}
+              />
+              <LabelSelector
+                selectedVariables={selectedVariables}
+                onVariablesChange={handleVariablesChange}
+              />
+            </div>
+
+            <div className="col-span-2">
+              <PredictionParameters
+                config={predictionConfig}
+                onConfigChange={handleConfigChange}
+                onPredict={handlePredict}
+                isLoading={predictionLoading}
+                error={predictionError}
+                latestDateInfo={latestDateInfo}
+                isLatestDateLoading={isLoadingLatestDate}
+                canPredict={selectedVariables.length > 0}
+              />
+            </div>
+        </div>
         </div>
 
         <InputFeatures />
 
         {predictionData ? (
-          <PredictionResults
-            predictionData={predictionData}
-            historicalData={predictedHistoricalData?.data}
-            showHistorical={showHistorical}
-            onToggleHistorical={setShowHistorical}
-          />
+          <div id="prediction-results">
+            <PredictionResults
+              predictionData={predictionData}
+              historicalData={predictedHistoricalData?.data}
+              showHistorical={showHistorical}
+              onToggleHistorical={setShowHistorical}
+              selectedVariables={sentLabels}
+            />
+          </div>
         ) : !predictionLoading ? (
           <EmptyState />
         ) : null}
