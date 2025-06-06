@@ -438,9 +438,9 @@ const PredictionChart: React.FC<PredictionChartProps> = ({
         <div className="space-y-4">
           <h4 className="font-semibold text-gray-800">Estadísticas mercado spot</h4>
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-              <h5 className="font-semibold text-orange-800 mb-3 flex items-center">
-                <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
+            <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+              <h5 className="font-semibold text-red-800 mb-3 flex items-center">
+                <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
                 España
               </h5>
               <div className="space-y-2 text-sm">
@@ -459,9 +459,9 @@ const PredictionChart: React.FC<PredictionChartProps> = ({
               </div>
             </div>
             
-            <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-              <h5 className="font-semibold text-red-800 mb-3 flex items-center">
-                <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <h5 className="font-semibold text-green-800 mb-3 flex items-center">
+                <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
                 Portugal
               </h5>
               <div className="space-y-2 text-sm">
@@ -483,10 +483,10 @@ const PredictionChart: React.FC<PredictionChartProps> = ({
         </div>
 
         <div className="space-y-4">
-          <h4 className="font-semibold text-gray-800">Estadísticas Demanda</h4>
-          <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
-            <h5 className="font-semibold text-indigo-800 mb-3 flex items-center">
-              <div className="w-3 h-3 bg-indigo-500 rounded-full mr-2"></div>
+          <h4 className="font-semibold text-gray-800">Estadísticas demanda</h4>
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <h5 className="font-semibold text-blue-800 mb-3 flex items-center">
+              <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
               Demanda predicha
             </h5>
             <div className="space-y-2 text-sm">
@@ -507,9 +507,8 @@ const PredictionChart: React.FC<PredictionChartProps> = ({
         </div>
       </div>
 
-      {/* Timeline */}
       <div className="bg-gray-50 p-4 rounded-lg border">
-        <h4 className="font-semibold text-gray-800 mb-3">Cronología de Predicciones</h4>
+        <h4 className="font-semibold text-gray-800 mb-3">Cronología de predicciones</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 text-xs">
           {predictionData.timestamps.map((timestamp, index) => {
             const date = new Date(timestamp);
@@ -524,13 +523,13 @@ const PredictionChart: React.FC<PredictionChartProps> = ({
                   })}
                 </div>
                 <div className="space-y-1">
-                  <div className="text-orange-600 font-semibold">
+                  <div className="text-red-600 font-semibold">
                     ES: {predictionData.predictions.daily_spot_market_600_España?.[index]?.toFixed(1) || 'N/A'} €/MWh
                   </div>
-                  <div className="text-red-600 font-semibold">
+                  <div className="text-green-600 font-semibold">
                     PT: {predictionData.predictions.daily_spot_market_600_Portugal?.[index]?.toFixed(1) || 'N/A'} €/MWh
                   </div>
-                  <div className="text-indigo-600 font-semibold">
+                  <div className="text-blue-600 font-semibold">
                     Demanda: {predictionData.predictions.scheduled_demand_372?.[index]?.toFixed(0) || 'N/A'} MW
                   </div>
                 </div>
