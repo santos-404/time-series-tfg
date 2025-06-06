@@ -12,6 +12,7 @@ interface PredictionParametersProps {
   error: string | null;
   latestDateInfo: LatestDateInfo;
   isLatestDateLoading: boolean;
+  canPredict: boolean;
 }
 
 const PredictionParameters: React.FC<PredictionParametersProps> = ({
@@ -21,7 +22,8 @@ const PredictionParameters: React.FC<PredictionParametersProps> = ({
   isLoading,
   error,
   latestDateInfo,
-  isLatestDateLoading
+  isLatestDateLoading,
+  canPredict
 }) => {
   
   return (
@@ -62,7 +64,7 @@ const PredictionParameters: React.FC<PredictionParametersProps> = ({
         
         <button
           onClick={onPredict}
-          disabled={isLoading}
+          disabled={isLoading || !canPredict}
           className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
         >
           {isLoading ? (
