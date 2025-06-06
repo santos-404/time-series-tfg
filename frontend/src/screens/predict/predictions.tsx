@@ -23,7 +23,7 @@ const Predictions = () => {
   const [predictionConfig, setPredictionConfig] = useState<PredictionRequest>({
     model_name: 'lstm',
     hours_ahead: 21,
-    input_hours: 24,
+    input_hours: 168,
     prediction_date: '' 
   });
 
