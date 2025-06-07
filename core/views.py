@@ -1,8 +1,10 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
 from rest_framework import status
 from django.conf import settings
 from django.utils import timezone
+from django.db.models import Avg
 from datetime import timedelta, datetime
 from collections import defaultdict
 import pandas as pd
@@ -10,12 +12,15 @@ import requests
 import os
 import html
 
-from .models import TimeSeriesData
+from .models import TimeSeriesData, PredictionHistory
 from .utils.time_series_utils import TimeSeriesPredictor
 from .serializers import (
     PredictionRequestSerializer, 
     DataDownloadRequestSerializer,
     HistoricalDataRequestSerializer,
+    PredictionHistoryFilterSerializer,
+    PredictionHistoryListSerializer,
+    PredictionHistorySerializer,
     # PredictionResponseSerializer,
     # TimeSeriesDataSerializer
 )
@@ -170,6 +175,30 @@ class PredictView(APIView):
             print(f"Warning: Could not load models: {e}")
             self.predictor = None
     
+    def _save_prediction_to_history(self, model_name, hours_ahead, input_hours, 
+                                   prediction_date, start_time, end_time, 
+                                   predictions, timestamps):
+        """Save prediction to history database"""
+        try:
+            timestamp_strings = [ts.isoformat() for ts in timestamps]
+            
+            prediction_history = PredictionHistory.objects.create(
+                model_used=model_name,
+                hours_ahead=hours_ahead,
+                input_hours=input_hours,
+                prediction_date=prediction_date,
+                start_time=start_time,
+                end_time=end_time,
+                predictions=predictions,
+                timestamps=timestamp_strings
+            )
+            
+            return prediction_history.id
+            
+        except Exception as e:
+            print(f"Warning: Could not save prediction to history: {e}")
+            return None
+
     def post(self, request):
         serializer = PredictionRequestSerializer(data=request.data)
         
@@ -228,10 +257,23 @@ class PredictView(APIView):
                 for i in range(hours_ahead)
             ]
             
+            # Save prediction to history
+            history_id = self._save_prediction_to_history(
+                model_name=model_name,
+                hours_ahead=hours_ahead,
+                input_hours=input_hours,
+                prediction_date=prediction_date,
+                start_time=start_time,
+                end_time=end_time,
+                predictions=result['predictions'],
+                timestamps=future_timestamps
+            )
+            
             response_data = {
                 'predictions': result['predictions'],
                 'timestamps': future_timestamps,
                 'model_used': result['model_used'],
+                'history_id': history_id,  # Include the saved history ID
                 'input_data': {
                     'hours_used': input_hours,
                     'start_time': start_time,
@@ -697,3 +739,148 @@ class LatestDataDateView(APIView):
                 'error': f'Fallo al obtener la fecha más reciente: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+class PredictionHistoryPagination(PageNumberPagination):
+    """Custom pagination for prediction history"""
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+class PredictionHistoryListView(APIView):
+    """
+    List all prediction history with optional filtering
+    GET /api/predictions/history/
+    """
+    
+    def get(self, request):
+        # Validate filter parameters
+        filter_serializer = PredictionHistoryFilterSerializer(data=request.query_params)
+        if not filter_serializer.is_valid():
+            return Response(filter_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Start with all predictions
+        queryset = PredictionHistory.objects.all()
+        
+        # Apply filters
+        filters = filter_serializer.validated_data
+        
+        if filters.get('model_used'):
+            queryset = queryset.filter(model_used=filters['model_used'])
+        
+        if filters.get('date_from'):
+            date_from = timezone.make_aware(
+                datetime.combine(filters['date_from'], datetime.min.time())
+            )
+            queryset = queryset.filter(created_at__gte=date_from)
+        
+        if filters.get('date_to'):
+            date_to = timezone.make_aware(
+                datetime.combine(filters['date_to'], datetime.max.time())
+            )
+            queryset = queryset.filter(created_at__lte=date_to)
+        
+        if filters.get('prediction_date'):
+            queryset = queryset.filter(prediction_date=filters['prediction_date'])
+        
+        if filters.get('hours_ahead'):
+            queryset = queryset.filter(hours_ahead=filters['hours_ahead'])
+        
+        # Get total count before applying limit
+        total_count = queryset.count()
+        
+        # Apply limit
+        limit = filters.get('limit', 100)
+        queryset = queryset[:limit]
+        
+        # Serialize data (use list serializer for performance)
+        serializer = PredictionHistoryListSerializer(queryset, many=True)
+        
+        return Response({
+            'count': total_count,
+            'results': serializer.data,
+            'filters_applied': filters,
+            'returned_count': len(serializer.data)
+        })
+
+
+class PredictionHistoryDetailView(APIView):
+    """
+    Get detailed information about a specific prediction
+    GET /api/predictions/history/{id}/
+    """
+    
+    def get(self, request, pk):
+        try:
+            prediction = PredictionHistory.objects.get(pk=pk)
+        except PredictionHistory.DoesNotExist:
+            return Response({
+                'error': 'Predicción no encontrada'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = PredictionHistorySerializer(prediction)
+        return Response(serializer.data)
+
+
+class PredictionHistoryStatsView(APIView):
+    """
+    Get statistics about prediction history
+    GET /api/predictions/history/stats/
+    """
+    
+    def get(self, request):
+        total_predictions = PredictionHistory.objects.count()
+        
+        if total_predictions == 0:
+            return Response({
+                'total_predictions': 0,
+                'models_used': [],
+                'date_range': None,
+                'average_hours_ahead': 0,
+                'recent_predictions_7_days': 0
+            })
+        
+        # Get model statistics
+        models_stats = {}
+        for model in ['linear', 'dense', 'conv', 'lstm']:
+            count = PredictionHistory.objects.filter(model_used=model).count()
+            if count > 0:
+                models_stats[model] = count
+        
+        # Get date range
+        oldest = PredictionHistory.objects.order_by('created_at').first()
+        newest = PredictionHistory.objects.order_by('-created_at').first()
+        
+        # Get average hours ahead
+        avg_hours = PredictionHistory.objects.aggregate(
+            avg_hours=Avg('hours_ahead')
+        )['avg_hours']
+        
+        # Get recent predictions (last 7 days)
+        week_ago = timezone.now() - timezone.timedelta(days=7)
+        recent_predictions = PredictionHistory.objects.filter(
+            created_at__gte=week_ago
+        ).count()
+        
+        # Get format statistics (new vs old prediction format)
+        format_stats = {'legacy_list': 0, 'multi_label': 0, 'unknown': 0}
+        
+        for prediction in PredictionHistory.objects.all():
+            if prediction.predictions:
+                if isinstance(prediction.predictions, list):
+                    format_stats['legacy_list'] += 1
+                elif isinstance(prediction.predictions, dict):
+                    format_stats['multi_label'] += 1
+                else:
+                    format_stats['unknown'] += 1
+        
+        return Response({
+            'total_predictions': total_predictions,
+            'models_used': models_stats,
+            'date_range': {
+                'oldest': oldest.created_at if oldest else None,
+                'newest': newest.created_at if newest else None
+            },
+            'average_hours_ahead': round(avg_hours, 2) if avg_hours else 0,
+            'recent_predictions_7_days': recent_predictions,
+            'prediction_formats': format_stats
+        })
