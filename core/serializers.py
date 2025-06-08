@@ -1,6 +1,6 @@
 from django.core.validators import MinValueValidator, MaxValueValidator
 from rest_framework import serializers
-from .models import TimeSeriesData
+from .models import TimeSeriesData, PredictionHistory
 from datetime import date
 
 class TimeSeriesDataSerializer(serializers.ModelSerializer):
@@ -78,3 +78,120 @@ class DataDownloadRequestSerializer(serializers.Serializer):
             raise serializers.ValidationError("ESIOS token cannot be empty")
         return value.strip()
 
+
+class PredictionHistorySerializer(serializers.ModelSerializer):
+    """Serializer for PredictionHistory model"""
+    
+    prediction_summary = serializers.ReadOnlyField()
+    
+    class Meta:
+        model = PredictionHistory
+        fields = [
+            'id',
+            'created_at',
+            'model_used',
+            'hours_ahead',
+            'input_hours',
+            'prediction_date',
+            'start_time',
+            'end_time',
+            'predictions',
+            'timestamps',
+            'notes',
+            'prediction_summary'
+        ]
+        read_only_fields = ['id', 'created_at', 'prediction_summary']
+
+
+class PredictionHistoryListSerializer(serializers.ModelSerializer):
+    """Simplified serializer for listing predictions (without full prediction data)"""
+    
+    prediction_summary = serializers.ReadOnlyField()
+    predictions_count = serializers.SerializerMethodField()
+    labels_info = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = PredictionHistory
+        fields = [
+            'id',
+            'created_at',
+            'model_used',
+            'hours_ahead',
+            'input_hours',
+            'prediction_date',
+            'start_time',
+            'end_time',
+            'predictions_count',
+            'labels_info',
+            'prediction_summary',
+            'notes'
+        ]
+    
+    def get_predictions_count(self, obj):
+        """Return the total number of predictions across all labels"""
+        if not obj.predictions:
+            return 0
+            
+        # Handle both old format (list) and new format (dict)
+        if isinstance(obj.predictions, list):
+            return len(obj.predictions)
+        elif isinstance(obj.predictions, dict):
+            total = 0
+            for label, values in obj.predictions.items():
+                if isinstance(values, list):
+                    total += len(values)
+            return total
+        else:
+            return 0
+    
+    def get_labels_info(self, obj):
+        """Return information about labels in the prediction"""
+        if not obj.predictions:
+            return None
+            
+        if isinstance(obj.predictions, list):
+            return {'format': 'legacy_list', 'labels': None}
+        elif isinstance(obj.predictions, dict):
+            labels_count = {}
+            for label, values in obj.predictions.items():
+                if isinstance(values, list):
+                    labels_count[label] = len(values)
+                else:
+                    labels_count[label] = 0
+            return {'format': 'multi_label', 'labels': labels_count}
+        else:
+            return None
+
+
+class PredictionHistoryFilterSerializer(serializers.Serializer):
+    """Serializer for filtering prediction history"""
+    
+    model_used = serializers.ChoiceField(
+        choices=['linear', 'dense', 'conv', 'lstm'],
+        required=False,
+        help_text="Filter by model type"
+    )
+    date_from = serializers.DateField(
+        required=False,
+        help_text="Filter predictions created from this date (YYYY-MM-DD)"
+    )
+    date_to = serializers.DateField(
+        required=False,
+        help_text="Filter predictions created up to this date (YYYY-MM-DD)"
+    )
+    prediction_date = serializers.DateField(
+        required=False,
+        help_text="Filter by prediction date (YYYY-MM-DD)"
+    )
+    hours_ahead = serializers.IntegerField(
+        required=False,
+        min_value=1,
+        help_text="Filter by hours ahead predicted"
+    )
+    limit = serializers.IntegerField(
+        required=False,
+        min_value=1,
+        max_value=1000,
+        default=100,
+        help_text="Maximum number of results to return"
+    )

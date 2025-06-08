@@ -5,7 +5,6 @@ export const Footer: React.FC = () => {
     <footer className="bg-gray-50 text-gray-800 mt-auto relative overflow-hidden">
 
       <div className="relative z-10 container mx-auto px-6 py-12">
-        {/* Main content grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           
           <div className="space-y-4">
@@ -13,6 +12,12 @@ export const Footer: React.FC = () => {
               Explorar la App
             </h3>
             <div className="space-y-3">
+              <a 
+                href="/history" 
+                className="block text-gray-600 hover:text-gray-800 hover:translate-x-2 transition-all duration-300 group"
+              >
+                <span className="group-hover:text-blue-600">Historial de predicciones</span>
+              </a>
               <a 
                 href="/predict" 
                 className="block text-gray-600 hover:text-gray-800 hover:translate-x-2 transition-all duration-300 group"

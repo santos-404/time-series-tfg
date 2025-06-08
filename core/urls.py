@@ -5,7 +5,10 @@ from .views import (
     HistoricalDataView, 
     DownloadDataView,
     MergeDataView,
-    LatestDataDateView
+    LatestDataDateView,
+    PredictionHistoryListView,
+    PredictionHistoryDetailView,
+    PredictionHistoryStatsView,
 )
 
 urlpatterns = [
@@ -16,5 +19,9 @@ urlpatterns = [
     path('data/download/', DownloadDataView.as_view(), name='download-data'),
     path('data/merge/', MergeDataView.as_view(), name='merge-data'),
     path('data/latest-date/', LatestDataDateView.as_view(), name='latest-data'),
+
+    path('predictions/history/', PredictionHistoryListView.as_view(), name='prediction-history-list'),
+    path('predictions/history/<int:pk>/', PredictionHistoryDetailView.as_view(), name='prediction-history-detail'),
+    path('predictions/history/stats/', PredictionHistoryStatsView.as_view(), name='prediction-history-stats'),
 ]
 

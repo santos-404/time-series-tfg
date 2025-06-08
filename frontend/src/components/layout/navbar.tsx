@@ -11,7 +11,13 @@ export const Navbar: React.FC = () => {
           TFG - Javier Santos
         </a>
 
-        <div className="flex space-x-6">
+        <div className="flex space-x-10">
+          <a
+            href="/history"
+            className="relative text-gray-600 font-medium hover:text-blue-600 transition-colors duration-200 after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-0 after:bg-indigo-600 hover:after:w-full hover:after:transition-all hover:after:duration-300"
+          >
+            Historial 
+          </a>
           <a
             href="/predict"
             className="relative text-gray-600 font-medium hover:text-blue-600 transition-colors duration-200 after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-0 after:bg-indigo-600 hover:after:w-full hover:after:transition-all hover:after:duration-300"
