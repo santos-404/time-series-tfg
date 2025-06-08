@@ -113,7 +113,7 @@ const PredictionList = ({ predictions, loading, error }: PredictionListProps) =>
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  Predicción #{prediction.id}
+                  Predicción {prediction.id}
                 </h3>
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${getModelBadgeColor(prediction.model_used)}`}>
                   {getModelDisplayName(prediction.model_used)}
@@ -131,7 +131,7 @@ const PredictionList = ({ predictions, loading, error }: PredictionListProps) =>
             </button>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div>
               <span className="font-medium text-gray-700">Fecha predicción:</span>
               <p className="text-gray-600">{prediction.prediction_date}</p>
@@ -143,17 +143,6 @@ const PredictionList = ({ predictions, loading, error }: PredictionListProps) =>
             <div>
               <span className="font-medium text-gray-700">Horas entrada:</span>
               <p className="text-gray-600">{prediction.input_hours}h</p>
-            </div>
-            <div>
-              <span className="font-medium text-gray-700">Variables:</span>
-              <p className="text-gray-600">
-                {Array.isArray(prediction.predictions) 
-                  ? `${prediction.predictions.length} valores`
-                  : typeof prediction.predictions === 'object' && prediction.predictions
-                    ? Object.keys(prediction.predictions).join(', ')
-                    : 'N/A'
-                }
-              </p>
             </div>
           </div>
 
