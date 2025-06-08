@@ -749,19 +749,15 @@ class PredictionHistoryPagination(PageNumberPagination):
 class PredictionHistoryListView(APIView):
     """
     List all prediction history with optional filtering
-    GET /api/predictions/history/
     """
     
     def get(self, request):
-        # Validate filter parameters
         filter_serializer = PredictionHistoryFilterSerializer(data=request.query_params)
         if not filter_serializer.is_valid():
             return Response(filter_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-        # Start with all predictions
         queryset = PredictionHistory.objects.all()
         
-        # Apply filters
         filters = filter_serializer.validated_data
         
         if filters.get('model_used'):
@@ -785,14 +781,11 @@ class PredictionHistoryListView(APIView):
         if filters.get('hours_ahead'):
             queryset = queryset.filter(hours_ahead=filters['hours_ahead'])
         
-        # Get total count before applying limit
         total_count = queryset.count()
         
-        # Apply limit
         limit = filters.get('limit', 100)
         queryset = queryset[:limit]
         
-        # Serialize data (use list serializer for performance)
         serializer = PredictionHistoryListSerializer(queryset, many=True)
         
         return Response({
@@ -806,7 +799,6 @@ class PredictionHistoryListView(APIView):
 class PredictionHistoryDetailView(APIView):
     """
     Get detailed information about a specific prediction
-    GET /api/predictions/history/{id}/
     """
     
     def get(self, request, pk):
@@ -824,7 +816,6 @@ class PredictionHistoryDetailView(APIView):
 class PredictionHistoryStatsView(APIView):
     """
     Get statistics about prediction history
-    GET /api/predictions/history/stats/
     """
     
     def get(self, request):
@@ -839,39 +830,23 @@ class PredictionHistoryStatsView(APIView):
                 'recent_predictions_7_days': 0
             })
         
-        # Get model statistics
         models_stats = {}
         for model in ['linear', 'dense', 'conv', 'lstm']:
             count = PredictionHistory.objects.filter(model_used=model).count()
             if count > 0:
                 models_stats[model] = count
         
-        # Get date range
         oldest = PredictionHistory.objects.order_by('created_at').first()
         newest = PredictionHistory.objects.order_by('-created_at').first()
         
-        # Get average hours ahead
         avg_hours = PredictionHistory.objects.aggregate(
             avg_hours=Avg('hours_ahead')
         )['avg_hours']
         
-        # Get recent predictions (last 7 days)
         week_ago = timezone.now() - timezone.timedelta(days=7)
         recent_predictions = PredictionHistory.objects.filter(
             created_at__gte=week_ago
         ).count()
-        
-        # Get format statistics (new vs old prediction format)
-        format_stats = {'legacy_list': 0, 'multi_label': 0, 'unknown': 0}
-        
-        for prediction in PredictionHistory.objects.all():
-            if prediction.predictions:
-                if isinstance(prediction.predictions, list):
-                    format_stats['legacy_list'] += 1
-                elif isinstance(prediction.predictions, dict):
-                    format_stats['multi_label'] += 1
-                else:
-                    format_stats['unknown'] += 1
         
         return Response({
             'total_predictions': total_predictions,
@@ -882,5 +857,4 @@ class PredictionHistoryStatsView(APIView):
             },
             'average_hours_ahead': round(avg_hours, 2) if avg_hours else 0,
             'recent_predictions_7_days': recent_predictions,
-            'prediction_formats': format_stats
         })
