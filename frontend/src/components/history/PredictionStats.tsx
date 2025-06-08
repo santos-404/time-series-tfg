@@ -42,7 +42,7 @@ const PredictionStats = ({ stats, loading }: PredictionStatsProps) => {
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-      <h2 className="text-xl font-semibold mb-6">Estadísticas del Historial</h2>
+      <h2 className="text-xl font-semibold mb-6">Estadísticas del historial</h2>
       
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
         <div className="text-center">

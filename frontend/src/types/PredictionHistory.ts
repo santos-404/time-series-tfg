@@ -41,3 +41,31 @@ export interface PredictionHistoryStats {
     unknown: number;
   };
 }
+
+export interface PredictionDetail {
+  id: number;
+  created_at: string;
+  model_used: string;
+  hours_ahead: number;
+  input_hours: number;
+  prediction_date: string;
+  start_time: string;
+  end_time: string;
+  predictions: {
+    scheduled_demand_372?: number[];
+    daily_spot_market_600_España?: number[];
+    daily_spot_market_600_Portugal?: number[];
+  };
+  timestamps: string[];
+  notes: string | null;
+  prediction_summary: {
+    format: string;
+    labels: Record<string, {
+      count: number;
+      min: number;
+      max: number;
+      avg: number;
+    }>;
+    total_predictions: number;
+  };
+}

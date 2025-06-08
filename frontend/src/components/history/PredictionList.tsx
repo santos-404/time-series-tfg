@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import PredictionDetailModal from '@/components/history/PredictionDetailModal';
 import type { PredictionHistoryItem } from '@/types/PredictionHistory';
 
 interface PredictionListProps {
@@ -9,6 +10,7 @@ interface PredictionListProps {
 
 const PredictionList = ({ predictions, loading, error }: PredictionListProps) => {
   const [selectedPrediction, setSelectedPrediction] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('es-ES', {
@@ -41,9 +43,13 @@ const PredictionList = ({ predictions, loading, error }: PredictionListProps) =>
   };
 
   const handleDetailsClick = (predictionId: number) => {
-    // TODO: Implement details view with plots
-    console.log('Show details for prediction:', predictionId);
     setSelectedPrediction(predictionId);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedPrediction(null);
   };
 
   if (loading) {
@@ -107,7 +113,7 @@ const PredictionList = ({ predictions, loading, error }: PredictionListProps) =>
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  Predicción {prediction.id}
+                  Predicción #{prediction.id}
                 </h3>
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${getModelBadgeColor(prediction.model_used)}`}>
                   {getModelDisplayName(prediction.model_used)}
@@ -125,7 +131,7 @@ const PredictionList = ({ predictions, loading, error }: PredictionListProps) =>
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
               <span className="font-medium text-gray-700">Fecha predicción:</span>
               <p className="text-gray-600">{prediction.prediction_date}</p>
@@ -138,6 +144,17 @@ const PredictionList = ({ predictions, loading, error }: PredictionListProps) =>
               <span className="font-medium text-gray-700">Horas entrada:</span>
               <p className="text-gray-600">{prediction.input_hours}h</p>
             </div>
+            <div>
+              <span className="font-medium text-gray-700">Variables:</span>
+              <p className="text-gray-600">
+                {Array.isArray(prediction.predictions) 
+                  ? `${prediction.predictions.length} valores`
+                  : typeof prediction.predictions === 'object' && prediction.predictions
+                    ? Object.keys(prediction.predictions).join(', ')
+                    : 'N/A'
+                }
+              </p>
+            </div>
           </div>
 
           {prediction.error && (
@@ -149,6 +166,15 @@ const PredictionList = ({ predictions, loading, error }: PredictionListProps) =>
           )}
         </div>
       ))}
+
+      {/* Modal */}
+      {selectedPrediction && (
+        <PredictionDetailModal
+          predictionId={selectedPrediction}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 };
