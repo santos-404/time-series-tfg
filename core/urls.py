@@ -1,4 +1,5 @@
 from django.urls import path
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from .views import (
     TrainModelsView, 
     PredictView, 
@@ -23,5 +24,9 @@ urlpatterns = [
     path('predictions/history/', PredictionHistoryListView.as_view(), name='prediction-history-list'),
     path('predictions/history/<int:pk>/', PredictionHistoryDetailView.as_view(), name='prediction-history-detail'),
     path('predictions/history/stats/', PredictionHistoryStatsView.as_view(), name='prediction-history-stats'),
+
+    path('docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]
 
