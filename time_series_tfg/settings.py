@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'drf_spectacular',
     'core',
     'corsheaders',  
 ]
@@ -82,6 +83,16 @@ TIME_SERIES_CSV_PATH = os.path.join(BASE_DIR, 'data', 'merged_dataset.csv')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# Add swagger API docs
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Javier Santos TFG - Documentación API',
+    'DESCRIPTION': 'Documentación de la API',
+    'VERSION': '1.0.0',
+}
 
 # Until here ------------------------------
 
