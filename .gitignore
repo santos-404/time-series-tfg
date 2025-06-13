@@ -3,6 +3,7 @@ env.py
 
 data/*
 !data/README.md
+!data/sample_data.csv
 
 # Byte-compiled files
 __pycache__/
