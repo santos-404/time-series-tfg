@@ -146,7 +146,11 @@ class PredictView(APIView):
     def __init__(self):
         super().__init__()
         self.predictor = None
+        self.sample_data = None
+        self.sample_start_date = datetime(2025, 3, 23).date()
+        self.sample_end_date = datetime(2025, 3, 30).date()
         self._load_models()
+        self._load_sample_data()
     
     def _load_models(self):
         """Load trained models and normalization parameters"""
@@ -175,9 +179,46 @@ class PredictView(APIView):
             print(f"Warning: Could not load models: {e}")
             self.predictor = None
     
+    def _load_sample_data(self):
+        """Load sample data CSV for demo purposes"""
+        try:
+            sample_data_path = os.path.join(settings.BASE_DIR, 'data', 'sample_data.csv')
+            if os.path.exists(sample_data_path):
+                self.sample_data = pd.read_csv(sample_data_path)
+                # Convert datetime column to datetime type
+                self.sample_data['datetime_utc'] = pd.to_datetime(self.sample_data['datetime_utc'])
+                print("Sample data loaded successfully")
+            else:
+                print(f"Sample data file not found at: {sample_data_path}")
+                self.sample_data = None
+        except Exception as e:
+            print(f"Warning: Could not load sample data: {e}")
+            self.sample_data = None
+    
+    def _is_date_in_sample_range(self, date):
+        """Check if a date is within the sample data range"""
+        return self.sample_start_date <= date <= self.sample_end_date
+    
+    def _get_sample_data_for_period(self, start_time, end_time):
+        """Get sample data for the specified time period"""
+        if self.sample_data is None:
+            return None
+        
+        # Filter sample data by datetime range
+        mask = (self.sample_data['datetime_utc'] >= start_time) & \
+               (self.sample_data['datetime_utc'] <= end_time)
+        filtered_data = self.sample_data[mask].copy()
+        
+        if len(filtered_data) == 0:
+            return None
+        
+        # Sort by datetime
+        filtered_data = filtered_data.sort_values('datetime_utc')
+        return filtered_data
+    
     def _save_prediction_to_history(self, model_name, hours_ahead, input_hours, 
                                    prediction_date, start_time, end_time, 
-                                   predictions, timestamps):
+                                   predictions, timestamps, using_sample_data=False):
         """Save prediction to history database"""
         try:
             timestamp_strings = [ts.isoformat() for ts in timestamps]
@@ -190,7 +231,9 @@ class PredictView(APIView):
                 start_time=start_time,
                 end_time=end_time,
                 predictions=predictions,
-                timestamps=timestamp_strings
+                timestamps=timestamp_strings,
+                # You might want to add a field to track if sample data was used
+                notes=f"Usando datos de muestra" if using_sample_data else None
             )
             
             return prediction_history.id
@@ -236,21 +279,72 @@ class PredictView(APIView):
             
             start_time = end_time - timedelta(hours=input_hours)
             
+            # First, try to get data from database
             recent_data = TimeSeriesData.objects.filter(
                 datetime_utc__range=[start_time, end_time]
             ).order_by('datetime_utc')
             
+            using_sample_data = False
+            
             if recent_data.count() < input_hours:
-                return Response({
-                    'error': f'No existen suficientes datos para la fecha seleccionada. Se necesitan {input_hours} horas, se encontraron {recent_data.count()}'
-                }, status=status.HTTP_400_BAD_REQUEST)
+                if prediction_date:
+                    if (self._is_date_in_sample_range(prediction_date) and 
+                        self.sample_data is not None):
+                        
+                        # Use sample data
+                        sample_df = self._get_sample_data_for_period(start_time, end_time)
+                        
+                        if sample_df is not None and len(sample_df) >= input_hours:
+                            # Use the last input_hours rows if we have more data than needed
+                            if len(sample_df) > input_hours:
+                                sample_df = sample_df.tail(input_hours)
+                            
+                            # Prepare data in the same format as DB data
+                            df = sample_df.drop(['datetime_utc'], axis=1, errors='ignore')
+                            data_array = df.values
+                            using_sample_data = True
+                            
+                            # Create fake recent_data object for timestamp calculation
+                            class FakeLast:
+                                def __init__(self, dt):
+                                    self.datetime_utc = dt
+                            
+                            class FakeRecentData:
+                                def __init__(self, last_dt):
+                                    self._last = FakeLast(last_dt)
+                                
+                                def last(self):
+                                    return self._last
+                            
+                            recent_data = FakeRecentData(sample_df['datetime_utc'].iloc[-1])
+                        else:
+                            return Response({
+                                'error': f'No existen suficientes datos de muestra para la fecha seleccionada. Se necesitan {input_hours} horas.'
+                            }, status=status.HTTP_400_BAD_REQUEST)
+                    else:
+                        # Dates are outside sample range, inform user about available dates
+                        return Response({
+                            'error': 'Con el modelo de demostración las fechas de predicción son: [2025-03-23, 2025-03-30]',
+                            'available_range': {
+                                'start_date': self.sample_start_date.isoformat(),
+                                'end_date': self.sample_end_date.isoformat()
+                            }
+                        }, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    return Response({
+                        'error': f'No existen suficientes datos para la fecha seleccionada. Se necesitan {input_hours} horas, se encontraron {recent_data.count()}'
+                    }, status=status.HTTP_400_BAD_REQUEST)
             
-            df = pd.DataFrame.from_records(recent_data.values())
-            df = df.drop(['id', 'datetime_utc'], axis=1)
-            data_array = df.values
+            # If we're not using sample data, process DB data normally
+            if not using_sample_data:
+                df = pd.DataFrame.from_records(recent_data.values())
+                df = df.drop(['id', 'datetime_utc'], axis=1)
+                data_array = df.values
             
+            # Make prediction
             result = self.predictor.predict(model_name, data_array, hours_ahead)
             
+            # Generate future timestamps
             last_timestamp = recent_data.last().datetime_utc
             future_timestamps = [
                 last_timestamp + timedelta(hours=i+1) 
@@ -266,14 +360,16 @@ class PredictView(APIView):
                 start_time=start_time,
                 end_time=end_time,
                 predictions=result['predictions'],
-                timestamps=future_timestamps
+                timestamps=future_timestamps,
+                using_sample_data=using_sample_data
             )
             
             response_data = {
                 'predictions': result['predictions'],
                 'timestamps': future_timestamps,
                 'model_used': result['model_used'],
-                'history_id': history_id,  # Include the saved history ID
+                'history_id': history_id,
+                'using_sample_data': using_sample_data,  # Flag to indicate sample data usage
                 'input_data': {
                     'hours_used': input_hours,
                     'start_time': start_time,
@@ -281,6 +377,9 @@ class PredictView(APIView):
                     'prediction_date': prediction_date.isoformat() if prediction_date else None
                 }
             }
+            
+            if using_sample_data:
+                response_data['message'] = 'Predicción realizada usando datos de muestra del modelo pre-entrenado.'
             
             return Response(response_data)
             
