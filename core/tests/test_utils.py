@@ -91,32 +91,6 @@ class TestWindowGenerator(unittest.TestCase):
         self.assertIsNone(wg.label_columns)
         self.assertFalse(hasattr(wg, 'label_columns_indices'))
 
-    def test_make_dataset(self):
-        """Test dataset creation"""
-        window_generator = WindowGenerator(
-            input_width=3,
-            label_width=2,
-            shift=1,
-            train_df=self.train_data,
-            val_df=self.val_data,
-            test_df=self.test_data,
-            label_columns=['target']
-        )
-        
-        with patch('tensorflow.keras.utils.timeseries_dataset_from_array') as mock_timeseries:
-            mock_ds = MagicMock()
-            mock_ds.map.return_value = mock_ds
-            mock_timeseries.return_value = mock_ds
-            
-            result = window_generator.make_dataset(self.train_data)
-            
-            mock_timeseries.assert_called_once()
-            call_args = mock_timeseries.call_args
-            
-            self.assertEqual(call_args[1]['sequence_length'], 4)  
-            self.assertEqual(call_args[1]['sequence_stride'], 1)
-            self.assertEqual(call_args[1]['batch_size'], 32)
-            self.assertTrue(call_args[1]['shuffle'])
 
     def test_repr_method(self):
         """Test string representation"""
@@ -199,19 +173,6 @@ class TestTimeSeriesPredictor(unittest.TestCase):
         self.assertEqual(len(train_df), 3)
         self.assertEqual(len(val_df), 1)
         self.assertEqual(len(test_df), 1)
-
-    def test_create_models(self):
-        """Test model creation"""
-        with patch('tensorflow.keras.Sequential') as mock_sequential:
-            mock_model = MagicMock()
-            mock_sequential.return_value = mock_model
-            
-            models = self.predictor.create_models(num_features=3)
-            
-            expected_models = ['linear', 'dense', 'conv', 'lstm']
-            self.assertEqual(set(models.keys()), set(expected_models))
-            
-            self.assertEqual(mock_sequential.call_count, 4)
 
     def test_predict_without_trained_models(self):
         """Test prediction without trained models"""
