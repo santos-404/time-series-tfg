@@ -47,7 +47,6 @@ class TestDownloadDataView(APITestCase):
         self.url = '/data/download/'
         self.view = DownloadDataView()
         
-        # Sample API response data
         self.sample_indicators_response = {
             'indicators': [
                 {
@@ -123,13 +122,11 @@ class TestDownloadDataView(APITestCase):
     @patch('core.views.pd.json_normalize')
     def test_get_indicators_success(self, mock_normalize, mock_get):
         """Test successful indicators retrieval"""
-        # Mock the response
         mock_response = MagicMock()
         mock_response.json.return_value = self.sample_indicators_response
         mock_response.raise_for_status = MagicMock()
         mock_get.return_value = mock_response
         
-        # Mock pandas operations
         mock_df = MagicMock()
         mock_df.assign.return_value = mock_df
         mock_normalize.return_value = mock_df
@@ -158,20 +155,17 @@ class TestDownloadDataView(APITestCase):
     @patch('core.views.pd.json_normalize')
     def test_get_data_by_id_month_success(self, mock_normalize, mock_get):
         """Test successful data retrieval by indicator ID and month"""
-        # Mock the response
         mock_response = MagicMock()
         mock_response.json.return_value = self.sample_data_response
         mock_response.raise_for_status = MagicMock()
         mock_get.return_value = mock_response
         
-        # Mock pandas normalize
         mock_df = pd.DataFrame([{'value': 1000, 'datetime': '2023-01-01'}])
         mock_normalize.return_value = mock_df
         
         headers = {'Authorization': 'Token token=test'}
         result = self.view._get_data_by_id_month(358, 2023, 1, headers)
         
-        # Verify the endpoint was called with correct parameters
         expected_endpoint = (f"{self.view.BASE_ENDPOINT}/358?"
                            f"start_date=2023-01-01T00:00&"
                            f"end_date=2023-01-31T23:59&"
@@ -198,7 +192,6 @@ class TestDownloadDataView(APITestCase):
             
             self.view._get_data_by_id_month(358, current_date.year, current_date.month, headers)
             
-            # The endpoint should use today's date as end date
             expected_end_date = current_date.strftime('%Y-%m-%d')
             call_args = mock_get.call_args[0][0]
             self.assertIn(f"end_date={expected_end_date}T23:59", call_args)
@@ -236,12 +229,10 @@ class TestDownloadDataView(APITestCase):
                                         mock_get_indicators, mock_get_data_dir, 
                                         mock_get_headers):
         """Test successful POST request with indicators download"""
-        # Setup mocks
         mock_get_headers.return_value = {'Authorization': 'Token token=test'}
         mock_get_data_dir.return_value = '/test/data'
         mock_get_indicators.return_value = pd.DataFrame({'id': [1, 2]})
         
-        # Mock datetime to control the date range
         mock_today = datetime(2023, 6, 15)
         
         with patch('core.views.datetime') as mock_datetime:
@@ -261,7 +252,7 @@ class TestDownloadDataView(APITestCase):
     def test_post_invalid_serializer(self):
         """Test POST request with invalid data"""
         invalid_data = {
-            'years_back': 'invalid'  # Should be integer
+            'years_back': 'invalid'  
         }
         
         response = self.client.post(self.url, invalid_data, format='json')
@@ -316,7 +307,6 @@ class TestDownloadDataView(APITestCase):
         mock_get_headers.return_value = {'Authorization': 'Token token=test'}
         mock_get_data_dir.return_value = '/test/data'
         
-        # Mock monthly data returns
         monthly_df1 = pd.DataFrame({'value': [100, 200], 'datetime': ['2023-01-01', '2023-01-02']})
         monthly_df2 = pd.DataFrame({'value': [300, 400], 'datetime': ['2023-02-01', '2023-02-02']})
         combined_df = pd.DataFrame({'value': [100, 200, 300, 400], 
@@ -330,22 +320,19 @@ class TestDownloadDataView(APITestCase):
             'years_back': 1
         }
         
-        mock_today = datetime(2023, 3, 15)  # March, so we'll have Jan and Feb data
+        mock_today = datetime(2023, 3, 15)  
         
         with patch('core.views.datetime') as mock_datetime:
             mock_datetime.today.return_value = mock_today
             mock_datetime.side_effect = lambda *args, **kw: datetime(*args, **kw)
             
             with patch('core.views.DownloadDataView._get_data_by_id_month') as mock_get_data:
-                # Return different data for different months
-                mock_get_data.side_effect = [monthly_df1, monthly_df2] * 50  # Enough for all indicators
+                mock_get_data.side_effect = [monthly_df1, monthly_df2] * 50  
                 
                 response = self.client.post(self.url, request_data, format='json')
         
-        # Verify that concat was called (monthly data was combined)
         self.assertTrue(mock_concat.called)
         
-        # Verify that save_data was called (yearly files were saved)
         self.assertTrue(mock_save_data.called)
 
     def test_only_post_method_allowed(self):
