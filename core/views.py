@@ -687,7 +687,7 @@ class MergeDataView(APIView):
 
     def _resample_to_hourly(self, df):
         """Resample data to hourly frequency, calculating mean for sub-hourly data"""
-        df['hour'] = df['datetime_utc'].dt.floor('H')
+        df['hour'] = df['datetime_utc'].dt.floor('h')
         
         if 'geo_name' in df.columns:
             hourly_df = df.groupby(['hour', 'geo_name'])['value'].mean().reset_index()
