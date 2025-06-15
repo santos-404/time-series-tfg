@@ -685,6 +685,19 @@ class MergeDataView(APIView):
         sensor_id = filename.split("_")[0]
         return f"{category}_{sensor_id}"
 
+    def _resample_to_hourly(self, df):
+        """Resample data to hourly frequency, calculating mean for sub-hourly data"""
+        df['hour'] = df['datetime_utc'].dt.floor('h')
+        
+        if 'geo_name' in df.columns:
+            hourly_df = df.groupby(['hour', 'geo_name'])['value'].mean().reset_index()
+            hourly_df.rename(columns={'hour': 'datetime_utc'}, inplace=True)
+        else:
+            hourly_df = df.groupby('hour')['value'].mean().reset_index()
+            hourly_df.rename(columns={'hour': 'datetime_utc'}, inplace=True)
+        
+        return hourly_df
+
     def post(self, request):
         try:
             data_dir = self._get_data_dir()
@@ -713,10 +726,7 @@ class MergeDataView(APIView):
                         df = pd.read_csv(file_path)
                         df['datetime_utc'] = pd.to_datetime(df['datetime_utc'], utc=True)
                         
-                        # Filter to keep only hourly data (minute == 0). The reason behind
-                        # this is that not every feature got the same precision. So we only
-                        # keep the hourly data.
-                        df = df[df['datetime_utc'].dt.minute == 0]
+                        df = self._resample_to_hourly(df)
                         
                         if 'geo_name' in df.columns:
                             df = df[df['geo_name'].isin(self.SELECTED_GEO)]
