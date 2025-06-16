@@ -1,0 +1,1 @@
+Iteration,Loss,lstm_units,dropout,learning_rate,regularizer,return_sequences,batch_size,patience,epochs,model_type,input_width,label_width

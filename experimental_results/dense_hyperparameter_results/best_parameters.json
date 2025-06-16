@@ -1,0 +1,8 @@
+{
+  "units1": 128,
+  "units2": 128,
+  "dropout_rate": 0.0,
+  "activation": "relu",
+  "learning_rate": 0.001,
+  "batch_size": 64
+}
