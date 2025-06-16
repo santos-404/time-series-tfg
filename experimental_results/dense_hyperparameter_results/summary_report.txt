@@ -1,0 +1,35 @@
+DENSE MODEL HYPERPARAMETER TUNING SUMMARY REPORT
+==================================================
+Generated on: 2025-06-16 02:15:38
+Dataset: data/merged_dataset.csv
+Max horizon: 24
+Total experiments: 30
+
+BEST VALIDATION LOSS: 0.002289
+
+BEST PARAMETERS:
+------------------------------
+  units1              : 128
+  units2              : 128
+  dropout_rate        : 0.0
+  activation          : relu
+  learning_rate       : 0.001
+  batch_size          : 64
+
+TOP 5 RESULTS:
+------------------------------
+1. Val Loss: 0.002289
+   Parameters: {'units1': 128, 'units2': 128, 'dropout_rate': 0.0, 'activation': 'relu', 'learning_rate': 0.001, 'batch_size': 64}
+
+2. Val Loss: 0.004371
+   Parameters: {'units1': 32, 'units2': 128, 'dropout_rate': 0.0, 'activation': 'elu', 'learning_rate': 0.001, 'batch_size': 64}
+
+3. Val Loss: 0.011909
+   Parameters: {'units1': 128, 'units2': 128, 'dropout_rate': 0.0, 'activation': 'relu', 'learning_rate': 0.01, 'batch_size': 64}
+
+4. Val Loss: 0.013158
+   Parameters: {'units1': 32, 'units2': 16, 'dropout_rate': 0.0, 'activation': 'elu', 'learning_rate': 0.01, 'batch_size': 64}
+
+5. Val Loss: 0.014230
+   Parameters: {'units1': 256, 'units2': 128, 'dropout_rate': 0.1, 'activation': 'relu', 'learning_rate': 0.001, 'batch_size': 64}
+

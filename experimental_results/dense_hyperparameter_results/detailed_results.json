@@ -1,0 +1,362 @@
+[
+  {
+    "params": {
+      "units1": 64,
+      "units2": 32,
+      "dropout_rate": 0.2,
+      "activation": "relu",
+      "learning_rate": 0.01,
+      "batch_size": 64
+    },
+    "val_loss": 0.09699998795986176,
+    "timestamp": "2025-06-16T02:05:06.215199"
+  },
+  {
+    "params": {
+      "units1": 128,
+      "units2": 128,
+      "dropout_rate": 0.0,
+      "activation": "tanh",
+      "learning_rate": 0.01,
+      "batch_size": 32
+    },
+    "val_loss": 0.0984567180275917,
+    "timestamp": "2025-06-16T02:05:18.781469"
+  },
+  {
+    "params": {
+      "units1": 64,
+      "units2": 32,
+      "dropout_rate": 0.3,
+      "activation": "relu",
+      "learning_rate": 0.1,
+      "batch_size": 32
+    },
+    "val_loss": 0.6120560169219971,
+    "timestamp": "2025-06-16T02:05:35.457077"
+  },
+  {
+    "params": {
+      "units1": 256,
+      "units2": 32,
+      "dropout_rate": 0.3,
+      "activation": "tanh",
+      "learning_rate": 0.01,
+      "batch_size": 32
+    },
+    "val_loss": 0.11410638689994812,
+    "timestamp": "2025-06-16T02:05:54.062078"
+  },
+  {
+    "params": {
+      "units1": 128,
+      "units2": 128,
+      "dropout_rate": 0.2,
+      "activation": "elu",
+      "learning_rate": 0.01,
+      "batch_size": 16
+    },
+    "val_loss": 0.3721150755882263,
+    "timestamp": "2025-06-16T02:06:12.597014"
+  },
+  {
+    "params": {
+      "units1": 128,
+      "units2": 16,
+      "dropout_rate": 0.2,
+      "activation": "tanh",
+      "learning_rate": 0.01,
+      "batch_size": 32
+    },
+    "val_loss": 0.13078822195529938,
+    "timestamp": "2025-06-16T02:06:21.958193"
+  },
+  {
+    "params": {
+      "units1": 32,
+      "units2": 16,
+      "dropout_rate": 0.0,
+      "activation": "elu",
+      "learning_rate": 0.01,
+      "batch_size": 64
+    },
+    "val_loss": 0.013158160261809826,
+    "timestamp": "2025-06-16T02:06:33.329192"
+  },
+  {
+    "params": {
+      "units1": 64,
+      "units2": 128,
+      "dropout_rate": 0.3,
+      "activation": "relu",
+      "learning_rate": 0.1,
+      "batch_size": 32
+    },
+    "val_loss": 0.5596579909324646,
+    "timestamp": "2025-06-16T02:06:54.089076"
+  },
+  {
+    "params": {
+      "units1": 128,
+      "units2": 16,
+      "dropout_rate": 0.3,
+      "activation": "elu",
+      "learning_rate": 0.001,
+      "batch_size": 32
+    },
+    "val_loss": 0.054464951157569885,
+    "timestamp": "2025-06-16T02:07:31.539899"
+  },
+  {
+    "params": {
+      "units1": 64,
+      "units2": 128,
+      "dropout_rate": 0.0,
+      "activation": "relu",
+      "learning_rate": 0.1,
+      "batch_size": 64
+    },
+    "val_loss": 0.6294023990631104,
+    "timestamp": "2025-06-16T02:07:43.743204"
+  },
+  {
+    "params": {
+      "units1": 256,
+      "units2": 32,
+      "dropout_rate": 0.2,
+      "activation": "elu",
+      "learning_rate": 0.01,
+      "batch_size": 64
+    },
+    "val_loss": 0.06676799058914185,
+    "timestamp": "2025-06-16T02:07:56.475008"
+  },
+  {
+    "params": {
+      "units1": 128,
+      "units2": 64,
+      "dropout_rate": 0.3,
+      "activation": "tanh",
+      "learning_rate": 0.001,
+      "batch_size": 64
+    },
+    "val_loss": 0.03387608751654625,
+    "timestamp": "2025-06-16T02:08:14.098912"
+  },
+  {
+    "params": {
+      "units1": 32,
+      "units2": 128,
+      "dropout_rate": 0.0,
+      "activation": "elu",
+      "learning_rate": 0.001,
+      "batch_size": 64
+    },
+    "val_loss": 0.004370736423879862,
+    "timestamp": "2025-06-16T02:08:57.185890"
+  },
+  {
+    "params": {
+      "units1": 32,
+      "units2": 128,
+      "dropout_rate": 0.3,
+      "activation": "relu",
+      "learning_rate": 0.1,
+      "batch_size": 64
+    },
+    "val_loss": 0.6075030565261841,
+    "timestamp": "2025-06-16T02:09:09.636635"
+  },
+  {
+    "params": {
+      "units1": 64,
+      "units2": 16,
+      "dropout_rate": 0.2,
+      "activation": "relu",
+      "learning_rate": 0.1,
+      "batch_size": 64
+    },
+    "val_loss": 0.5560187697410583,
+    "timestamp": "2025-06-16T02:09:18.980996"
+  },
+  {
+    "params": {
+      "units1": 32,
+      "units2": 64,
+      "dropout_rate": 0.3,
+      "activation": "relu",
+      "learning_rate": 0.001,
+      "batch_size": 32
+    },
+    "val_loss": 0.07152584195137024,
+    "timestamp": "2025-06-16T02:09:45.962537"
+  },
+  {
+    "params": {
+      "units1": 64,
+      "units2": 16,
+      "dropout_rate": 0.3,
+      "activation": "tanh",
+      "learning_rate": 0.1,
+      "batch_size": 32
+    },
+    "val_loss": 0.26302266120910645,
+    "timestamp": "2025-06-16T02:10:05.679460"
+  },
+  {
+    "params": {
+      "units1": 256,
+      "units2": 128,
+      "dropout_rate": 0.1,
+      "activation": "relu",
+      "learning_rate": 0.001,
+      "batch_size": 64
+    },
+    "val_loss": 0.01423033606261015,
+    "timestamp": "2025-06-16T02:10:44.471312"
+  },
+  {
+    "params": {
+      "units1": 128,
+      "units2": 128,
+      "dropout_rate": 0.0,
+      "activation": "relu",
+      "learning_rate": 0.001,
+      "batch_size": 64
+    },
+    "val_loss": 0.002289291936904192,
+    "timestamp": "2025-06-16T02:11:34.886930"
+  },
+  {
+    "params": {
+      "units1": 256,
+      "units2": 32,
+      "dropout_rate": 0.3,
+      "activation": "elu",
+      "learning_rate": 0.01,
+      "batch_size": 32
+    },
+    "val_loss": 0.24220387637615204,
+    "timestamp": "2025-06-16T02:11:47.894349"
+  },
+  {
+    "params": {
+      "units1": 64,
+      "units2": 32,
+      "dropout_rate": 0.0,
+      "activation": "relu",
+      "learning_rate": 0.1,
+      "batch_size": 64
+    },
+    "val_loss": 0.5486099123954773,
+    "timestamp": "2025-06-16T02:12:02.403105"
+  },
+  {
+    "params": {
+      "units1": 32,
+      "units2": 128,
+      "dropout_rate": 0.1,
+      "activation": "elu",
+      "learning_rate": 0.001,
+      "batch_size": 64
+    },
+    "val_loss": 0.017058880999684334,
+    "timestamp": "2025-06-16T02:12:24.197165"
+  },
+  {
+    "params": {
+      "units1": 256,
+      "units2": 16,
+      "dropout_rate": 0.1,
+      "activation": "tanh",
+      "learning_rate": 0.1,
+      "batch_size": 64
+    },
+    "val_loss": 0.21781834959983826,
+    "timestamp": "2025-06-16T02:12:41.601907"
+  },
+  {
+    "params": {
+      "units1": 64,
+      "units2": 64,
+      "dropout_rate": 0.3,
+      "activation": "relu",
+      "learning_rate": 0.1,
+      "batch_size": 32
+    },
+    "val_loss": 0.5955712199211121,
+    "timestamp": "2025-06-16T02:13:00.333451"
+  },
+  {
+    "params": {
+      "units1": 32,
+      "units2": 64,
+      "dropout_rate": 0.1,
+      "activation": "tanh",
+      "learning_rate": 0.001,
+      "batch_size": 64
+    },
+    "val_loss": 0.024696866050362587,
+    "timestamp": "2025-06-16T02:13:19.527290"
+  },
+  {
+    "params": {
+      "units1": 64,
+      "units2": 128,
+      "dropout_rate": 0.2,
+      "activation": "elu",
+      "learning_rate": 0.001,
+      "batch_size": 32
+    },
+    "val_loss": 0.025283092632889748,
+    "timestamp": "2025-06-16T02:13:34.170295"
+  },
+  {
+    "params": {
+      "units1": 64,
+      "units2": 16,
+      "dropout_rate": 0.1,
+      "activation": "elu",
+      "learning_rate": 0.001,
+      "batch_size": 64
+    },
+    "val_loss": 0.02627488784492016,
+    "timestamp": "2025-06-16T02:13:57.966043"
+  },
+  {
+    "params": {
+      "units1": 32,
+      "units2": 64,
+      "dropout_rate": 0.3,
+      "activation": "relu",
+      "learning_rate": 0.001,
+      "batch_size": 16
+    },
+    "val_loss": 0.07161440700292587,
+    "timestamp": "2025-06-16T02:14:58.335584"
+  },
+  {
+    "params": {
+      "units1": 128,
+      "units2": 128,
+      "dropout_rate": 0.0,
+      "activation": "relu",
+      "learning_rate": 0.01,
+      "batch_size": 64
+    },
+    "val_loss": 0.01190934982150793,
+    "timestamp": "2025-06-16T02:15:25.146132"
+  },
+  {
+    "params": {
+      "units1": 64,
+      "units2": 32,
+      "dropout_rate": 0.2,
+      "activation": "relu",
+      "learning_rate": 0.1,
+      "batch_size": 64
+    },
+    "val_loss": 0.5757906436920166,
+    "timestamp": "2025-06-16T02:15:38.458012"
+  }
+]
